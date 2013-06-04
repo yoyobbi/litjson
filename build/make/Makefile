@@ -45,16 +45,18 @@ CLEAN_FILES += $(LITJSON_ASSEMBLY) $(GEN_FILES) $(LITJSON_MDB_FILE)
 ##
 TEST_ASSEMBLY = $(topdir)/bin/LitJson.Tests.dll
 TEST_MDB_FILE = $(TEST_ASSEMBLY).mdb
+TEST_CSC_FLAGS = -debug
 
 TEST_MONO_NUNIT = $(shell pkg-config --libs mono-nunit)
 
 TEST_RES_FILES = $(testdir)/json-example.txt
 TEST_SRC_FILES = \
-	$(testdir)/JsonDataTest.cs   \
-	$(testdir)/JsonMapperTest.cs \
-	$(testdir)/JsonReaderTest.cs \
-	$(testdir)/JsonWriterTest.cs \
-	$(testdir)/JsonIgnoreTest.cs
+	$(testdir)/JsonDataTest.cs           \
+	#$(testdir)/JsonMapperTest.cs         \
+	$(testdir)/JsonReaderTest.cs         \
+	$(testdir)/JsonWriterTest.cs         \
+	$(testdir)/JsonIgnoreTest.cs         \
+	$(testdir)/JsonObjectImporterTest.cs
 
 CLEAN_FILES += $(TEST_ASSEMBLY) $(TEST_MDB_FILE) $(builddir)/TestResult.xml
 
@@ -78,7 +80,7 @@ $(LITJSON_ASSEMBLY): $(SRC_FILES) $(GEN_FILES)
 	$(CSC) $(CSC_FLAGS) -target:library -out:$@ $^
 
 $(TEST_ASSEMBLY): $(TEST_SRC_FILES) $(TEST_RES_FILES) $(LITJSON_ASSEMBLY)
-	$(CSC) $(CSC_FLAGS) -target:library -out:$@ $(TEST_MONO_NUNIT) -r:$(LITJSON_ASSEMBLY) $(TEST_RES_FILES:%=-resource:%) $(TEST_SRC_FILES)
+	$(CSC) $(TEST_CSC_FLAGS) -target:library -out:$@ $(TEST_MONO_NUNIT) -r:$(LITJSON_ASSEMBLY) $(TEST_RES_FILES:%=-resource:%) $(TEST_SRC_FILES)
 
 clean:
 	rm -rf $(CLEAN_FILES)

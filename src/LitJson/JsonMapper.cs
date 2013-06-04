@@ -497,9 +497,22 @@ namespace LitJson
                     instance = list;
 
             } else if (reader.Token == JsonToken.ObjectStart) {
+
+                // If there's a custom importer that fits, use to create a JsonData type instead.
+                // Once the object is deserialzied, it will be invoked to create the actual converted object.
+                ImporterFunc importer = null;
+                if (custom_importers_table.ContainsKey (typeof(JsonData)) &&
+                    custom_importers_table[typeof(JsonData)].ContainsKey (
+                        inst_type)) {
+
+                    importer = custom_importers_table[typeof(JsonData)][inst_type];
+                    inst_type = typeof(JsonData);
+                }
+
                 AddObjectMetadata (value_type);
                 ObjectMetadata t_data = object_metadata[value_type];
 
+                // construct the new instance, handles structs as well
                 ConstructorInfo constructor = value_type.GetConstructor(
                     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, 
                     null, 
@@ -560,6 +573,10 @@ namespace LitJson
                                 t_data.ElementType, reader));
                     }
 
+                }
+
+                if (importer != null) {
+                    instance = importer(instance);
                 }
 
             }
