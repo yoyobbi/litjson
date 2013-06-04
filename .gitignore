@@ -1,6 +1,7 @@
 /src/LitJson/AssemblyInfo.cs
 /website
 TestResults.xml
-.DS_Store
 *.sublime-project
 *.sublime-workspace
+*.mdb
+.DS_Store
