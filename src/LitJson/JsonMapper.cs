@@ -100,6 +100,18 @@ namespace LitJson
 
     public class JsonMapper
     {
+        /// <summary>
+        /// Attribute to be placed on non-public fields or properties to include them in serialization.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+        public class IncludeAttribute : Attribute { }
+
+        /// <summary>
+        /// Attribute to be placed on public fields or properties to exclude them from serialization.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+        public class IgnoreAttribute : Attribute { }
+
         #region Fields
         private static int max_nesting_depth;
 
@@ -208,7 +220,7 @@ namespace LitJson
 
             data.Properties = new Dictionary<string, PropertyMetadata> ();
 
-            foreach (PropertyInfo p_info in type.GetProperties ()) {
+            foreach (PropertyInfo p_info in type.GetProperties (BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
                 if (p_info.Name == "Item") {
                     ParameterInfo[] parameters = p_info.GetIndexParameters ();
 
@@ -221,6 +233,21 @@ namespace LitJson
                     continue;
                 }
 
+                // If the property has an [Ignore] attribute, skip it
+                if (p_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
+                    continue;
+                }
+                
+                // Include properties automatically that have at least one public accessor
+                bool autoInclude =
+                    (p_info.GetGetMethod() != null && p_info.GetGetMethod().IsPublic) ||
+                    (p_info.GetSetMethod() != null && p_info.GetSetMethod().IsPublic);
+
+                // If neither accessor is public and we don't have an [Include] attribute, skip it
+                if (!autoInclude && p_info.GetCustomAttributes(typeof(IncludeAttribute), true).Length == 0) {
+                    continue;
+                }
+
                 PropertyMetadata p_data = new PropertyMetadata ();
                 p_data.Info = p_info;
                 p_data.Type = p_info.PropertyType;
@@ -230,7 +257,17 @@ namespace LitJson
                 data.Properties.Add (p_info.Name, p_data);
             }
 
-            foreach (FieldInfo f_info in type.GetFields ()) {
+            foreach (FieldInfo f_info in type.GetFields (BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
+                // If the field has an [Ignore] attribute, skip it
+                if (f_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
+                    continue;
+                }
+
+                // If the field isn't public and doesn't have an [Include] attribute, skip it
+                if (!f_info.IsPublic && f_info.GetCustomAttributes(typeof(IncludeAttribute), true).Length == 0) {
+                    continue;
+                }
+
                 PropertyMetadata p_data = new PropertyMetadata ();
                 p_data.Info = f_info;
                 p_data.IsField = true;
@@ -257,9 +294,24 @@ namespace LitJson
 
             IList<PropertyMetadata> props = new List<PropertyMetadata> ();
 
-            foreach (PropertyInfo p_info in type.GetProperties ()) {
+            foreach (PropertyInfo p_info in type.GetProperties (BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
                 if (p_info.Name == "Item")
                     continue;
+                
+                // If the property has an [Ignore] attribute, skip it
+                if (p_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
+                    continue;
+                }
+
+                // Include properties automatically that have at least one public accessor
+                bool autoInclude =
+                    (p_info.GetGetMethod() != null && p_info.GetGetMethod().IsPublic) ||
+                    (p_info.GetSetMethod() != null && p_info.GetSetMethod().IsPublic);
+
+                // If neither accessor is public and we don't have an [Include] attribute, skip it
+                if (!autoInclude && p_info.GetCustomAttributes(typeof(IncludeAttribute), true).Length == 0) {
+                    continue;
+                }
 
                 PropertyMetadata p_data = new PropertyMetadata ();
                 p_data.Info = p_info;
@@ -270,7 +322,17 @@ namespace LitJson
                 props.Add (p_data);
             }
 
-            foreach (FieldInfo f_info in type.GetFields ()) {
+            foreach (FieldInfo f_info in type.GetFields (BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
+                // If the field has an [Ignore] attribute, skip it
+                if (f_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
+                    continue;
+                }
+
+                // If the field isn't public and doesn't have an [Include] attribute, skip it
+                if (!f_info.IsPublic && f_info.GetCustomAttributes(typeof(IncludeAttribute), true).Length == 0) {
+                    continue;
+                }
+
                 PropertyMetadata p_data = new PropertyMetadata ();
                 p_data.Info = f_info;
                 p_data.IsField = true;
@@ -331,14 +393,17 @@ namespace LitJson
             if (reader.Token == JsonToken.ArrayEnd)
                 return null;
 
-            if (reader.Token == JsonToken.Null) {
+            Type underlying_type = Nullable.GetUnderlyingType(inst_type);
+            Type value_type = underlying_type ?? inst_type;
 
-                if (! inst_type.IsClass)
-                    throw new JsonException (String.Format (
+            if (reader.Token == JsonToken.Null) {
+                if (inst_type.IsClass || underlying_type != null) {
+                    return null;
+                }
+
+                throw new JsonException (String.Format (
                             "Can't assign null to an instance of type {0}",
                             inst_type));
-
-                return null;
             }
 
             if (reader.Token == JsonToken.Double ||
@@ -349,16 +414,16 @@ namespace LitJson
 
                 Type json_type = reader.Value.GetType ();
 
-                if (inst_type.IsAssignableFrom (json_type))
+                if (value_type.IsAssignableFrom (json_type))
                     return reader.Value;
 
                 // If there's a custom importer that fits, use it
                 if (custom_importers_table.ContainsKey (json_type) &&
                     custom_importers_table[json_type].ContainsKey (
-                        inst_type)) {
+                        value_type)) {
 
                     ImporterFunc importer =
-                        custom_importers_table[json_type][inst_type];
+                        custom_importers_table[json_type][value_type];
 
                     return importer (reader.Value);
                 }
@@ -366,20 +431,20 @@ namespace LitJson
                 // Maybe there's a base importer that works
                 if (base_importers_table.ContainsKey (json_type) &&
                     base_importers_table[json_type].ContainsKey (
-                        inst_type)) {
+                        value_type)) {
 
                     ImporterFunc importer =
-                        base_importers_table[json_type][inst_type];
+                        base_importers_table[json_type][value_type];
 
                     return importer (reader.Value);
                 }
 
                 // Maybe it's an enum
-                if (inst_type.IsEnum)
-                    return Enum.ToObject (inst_type, reader.Value);
+                if (value_type.IsEnum)
+                    return Enum.ToObject (value_type, reader.Value);
 
                 // Try using an implicit conversion operator
-                MethodInfo conv_op = GetConvOp (inst_type, json_type);
+                MethodInfo conv_op = GetConvOp (value_type, json_type);
 
                 if (conv_op != null)
                     return conv_op.Invoke (null,
@@ -432,11 +497,15 @@ namespace LitJson
                     instance = list;
 
             } else if (reader.Token == JsonToken.ObjectStart) {
+                AddObjectMetadata (value_type);
+                ObjectMetadata t_data = object_metadata[value_type];
 
-                AddObjectMetadata (inst_type);
-                ObjectMetadata t_data = object_metadata[inst_type];
-
-                instance = Activator.CreateInstance (inst_type);
+                ConstructorInfo constructor = value_type.GetConstructor(
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, 
+                    null, 
+                    Type.EmptyTypes, 
+                    null);
+                instance = constructor != null ? constructor.Invoke(null) : Activator.CreateInstance(value_type);
 
                 while (true) {
                     reader.Read ();
@@ -623,6 +692,12 @@ namespace LitJson
                 delegate (object obj, JsonWriter writer) {
                     writer.Write ((ulong) obj);
                 };
+
+            base_exporters_table[typeof(float)] =
+                delegate(object obj, JsonWriter writer)
+                {
+                    writer.Write(Convert.ToDouble ((float) obj));
+                };
         }
 
         private static void RegisterBaseImporters ()
@@ -712,6 +787,12 @@ namespace LitJson
             };
             RegisterImporter (base_importers_table, typeof (string),
                               typeof (DateTime), importer);
+
+            importer = delegate(object input) {
+                return Convert.ToInt64 ((int)input);
+            };
+            RegisterImporter (base_importers_table, typeof (int),
+                              typeof (long), importer);
         }
 
         private static void RegisterImporter (
