@@ -460,6 +460,16 @@ namespace LitJson
 
             if (reader.Token == JsonToken.ArrayStart) {
 
+                // If there's a custom importer that fits, use it
+                ImporterFunc importer = null;
+                if (custom_importers_table.ContainsKey (typeof(JsonData)) &&
+                    custom_importers_table[typeof(JsonData)].ContainsKey (
+                        inst_type)) {
+
+                    importer = custom_importers_table[typeof(JsonData)][inst_type];
+                    inst_type = typeof(JsonData);
+                }
+
                 AddArrayMetadata (inst_type);
                 ArrayMetadata t_data = array_metadata[inst_type];
 
@@ -495,6 +505,10 @@ namespace LitJson
                         ((Array) instance).SetValue (list[i], i);
                 } else
                     instance = list;
+
+                if (importer != null) {
+                    instance = importer(instance);
+                }
 
             } else if (reader.Token == JsonToken.ObjectStart) {
 
@@ -578,7 +592,6 @@ namespace LitJson
                 if (importer != null) {
                     instance = importer(instance);
                 }
-
             }
 
             return instance;

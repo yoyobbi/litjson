@@ -3,18 +3,15 @@ srcdir = $(topdir)/src/LitJson
 testdir = $(topdir)/test
 builddir = $(CURDIR)
 
-
 CLEAN_FILES =
 CSC = gmcs
 CSC_FLAGS =
 DATA_VERSION = $(topdir)/build/version
 NUNIT = nunit-console2
 
-
 ifdef ENABLE_DEBUG
 	CSC_FLAGS += -debug
 endif
-
 
 ##
 ## Main library
@@ -39,7 +36,6 @@ SRC_FILES = \
 
 CLEAN_FILES += $(LITJSON_ASSEMBLY) $(GEN_FILES) $(LITJSON_MDB_FILE)
 
-
 ##
 ## Tests
 ##
@@ -52,14 +48,13 @@ TEST_MONO_NUNIT = $(shell pkg-config --libs mono-nunit)
 TEST_RES_FILES = $(testdir)/json-example.txt
 TEST_SRC_FILES = \
 	$(testdir)/JsonDataTest.cs           \
-	#$(testdir)/JsonMapperTest.cs         \
 	$(testdir)/JsonReaderTest.cs         \
 	$(testdir)/JsonWriterTest.cs         \
 	$(testdir)/JsonIgnoreTest.cs         \
-	$(testdir)/JsonObjectImporterTest.cs
+	$(testdir)/JsonObjectImporterTest.cs \
+	$(testdir)/JsonArrayImporterTest.cs
 
 CLEAN_FILES += $(TEST_ASSEMBLY) $(TEST_MDB_FILE) $(builddir)/TestResult.xml
-
 
 ##
 ## Rules
