@@ -503,10 +503,10 @@ namespace LitJson
                 ImporterFunc importer = null;
                 if (custom_importers_table.ContainsKey (typeof(JsonData)) &&
                     custom_importers_table[typeof(JsonData)].ContainsKey (
-                        inst_type)) {
+                        value_type)) {
 
-                    importer = custom_importers_table[typeof(JsonData)][inst_type];
-                    inst_type = typeof(JsonData);
+                    importer = custom_importers_table[typeof(JsonData)][value_type];
+                    value_type = typeof(JsonData);
                 }
 
                 AddObjectMetadata (value_type);

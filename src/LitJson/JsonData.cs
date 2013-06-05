@@ -416,6 +416,15 @@ namespace LitJson
             return data.inst_boolean;
         }
 
+        public static explicit operator Single (JsonData data)
+        {
+            if (data.type == JsonType.Double)
+                return (Single)data.inst_double;
+            if (data.type == JsonType.Int)
+                return (Single)data.inst_int;
+            throw new InvalidCastException("Instance of JsonData doesn't hold a double or int");
+        }
+
         public static explicit operator Double (JsonData data)
         {
             if (data.type != JsonType.Double)
