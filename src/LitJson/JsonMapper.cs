@@ -25,6 +25,7 @@ namespace LitJson
         public bool           IsField;
         public Type           Type;
         public JsonIgnoreWhen Ignore;
+        public string hintName;
     }
 
 
@@ -95,6 +96,9 @@ namespace LitJson
     internal delegate object ImporterFunc                (object input);
     public   delegate TValue ImporterFunc<TJson, TValue> (TJson input);
 
+    internal delegate object FactoryFunc();
+    public delegate T FactoryFunc<T>();
+
     public delegate IJsonWrapper WrapperFactory ();
 
 
@@ -105,12 +109,6 @@ namespace LitJson
         /// </summary>
         [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
         public class IncludeAttribute : Attribute { }
-
-        /// <summary>
-        /// Attribute to be placed on public fields or properties to exclude them from serialization.
-        /// </summary>
-        [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-        public class IgnoreAttribute : Attribute { }
 
         #region Fields
         private static int max_nesting_depth;
@@ -124,6 +122,8 @@ namespace LitJson
                 IDictionary<Type, ImporterFunc>> base_importers_table;
         private static IDictionary<Type,
                 IDictionary<Type, ImporterFunc>> custom_importers_table;
+
+        private static IDictionary<Type, FactoryFunc> custom_factory_table;
 
         private static IDictionary<Type, ArrayMetadata> array_metadata;
         private static readonly object array_metadata_lock = new Object ();
@@ -169,6 +169,8 @@ namespace LitJson
 
             RegisterBaseExporters ();
             RegisterBaseImporters ();
+
+            custom_factory_table = new Dictionary<Type, FactoryFunc>();
         }
         #endregion
 
@@ -233,11 +235,6 @@ namespace LitJson
                     continue;
                 }
 
-                // If the property has an [Ignore] attribute, skip it
-                if (p_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
-                    continue;
-                }
-                
                 // Include properties automatically that have at least one public accessor
                 bool autoInclude =
                     (p_info.GetGetMethod() != null && p_info.GetGetMethod().IsPublic) ||
@@ -258,10 +255,6 @@ namespace LitJson
             }
 
             foreach (FieldInfo f_info in type.GetFields (BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
-                // If the field has an [Ignore] attribute, skip it
-                if (f_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
-                    continue;
-                }
 
                 // If the field isn't public and doesn't have an [Include] attribute, skip it
                 if (!f_info.IsPublic && f_info.GetCustomAttributes(typeof(IncludeAttribute), true).Length == 0) {
@@ -298,18 +291,13 @@ namespace LitJson
                 if (p_info.Name == "Item")
                     continue;
                 
-                // If the property has an [Ignore] attribute, skip it
-                if (p_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
-                    continue;
-                }
-
                 // Include properties automatically that have at least one public accessor
                 bool autoInclude =
                     (p_info.GetGetMethod() != null && p_info.GetGetMethod().IsPublic) ||
                     (p_info.GetSetMethod() != null && p_info.GetSetMethod().IsPublic);
 
                 // If neither accessor is public and we don't have an [Include] attribute, skip it
-                if (!autoInclude && p_info.GetCustomAttributes(typeof(IncludeAttribute), true).Length == 0) {
+                if (!autoInclude) {
                     continue;
                 }
 
@@ -323,10 +311,6 @@ namespace LitJson
             }
 
             foreach (FieldInfo f_info in type.GetFields (BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
-                // If the field has an [Ignore] attribute, skip it
-                if (f_info.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0) {
-                    continue;
-                }
 
                 // If the field isn't public and doesn't have an [Include] attribute, skip it
                 if (!f_info.IsPublic && f_info.GetCustomAttributes(typeof(IncludeAttribute), true).Length == 0) {
@@ -358,8 +342,19 @@ namespace LitJson
                     JsonIgnore ignore_attr = (JsonIgnore)attr;
                     p_data.Ignore = ignore_attr.Usage;
 
+                } else if (attr is JsonTypeHint) {
+                    JsonTypeHint hint_attr = (JsonTypeHint)attr;
+                    p_data.hintName = hint_attr.HintName;
                 }
             }
+        }
+
+        private static object CreateInstance(Type type) {
+            FactoryFunc factory;
+            if (custom_factory_table.TryGetValue(type, out factory)) {
+                return factory();
+            }
+            return Activator.CreateInstance(type);
         }
 
         private static MethodInfo GetConvOp (Type t1, Type t2)
@@ -482,7 +477,7 @@ namespace LitJson
                 Type elem_type;
 
                 if (! t_data.IsArray) {
-                    list = (IList) Activator.CreateInstance (inst_type);
+                    list = (IList) CreateInstance(inst_type);
                     elem_type = t_data.ElementType;
                 } else {
                     list = new ArrayList ();
@@ -532,7 +527,7 @@ namespace LitJson
                     null, 
                     Type.EmptyTypes, 
                     null);
-                instance = constructor != null ? constructor.Invoke(null) : Activator.CreateInstance(value_type);
+                instance = constructor != null ? constructor.Invoke(null) : CreateInstance(value_type);
 
                 while (true) {
                     reader.Read ();
@@ -1069,6 +1064,13 @@ namespace LitJson
 
             RegisterImporter (custom_importers_table, typeof (TJson),
                               typeof (TValue), importer_wrapper);
+        }
+
+        public static void RegisterFactory<T>(FactoryFunc<T> factory) {
+            FactoryFunc factoryWrapper = delegate {
+                return factory();
+            };
+            custom_factory_table[typeof(T)] = factoryWrapper;
         }
 
         public static void UnregisterExporters ()

@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 
-
 namespace LitJson
 {
     public class JsonData : IJsonWrapper, IEquatable<JsonData>
@@ -407,6 +406,9 @@ namespace LitJson
 
 
         #region Explicit Conversions
+
+        // FIXME: some of the explicit cast operators I added are not CLS compliant
+
         public static explicit operator Boolean (JsonData data)
         {
             if (data.type != JsonType.Boolean)
