@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace LitJson {
 
@@ -18,18 +19,21 @@ public class JsonIgnore : Attribute {
 	}
 }
 
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
+public class JsonIgnoreMember : Attribute {
+	public HashSet<string> Members { get; private set; }
+
+	public JsonIgnoreMember(params string[] members) {
+		Members = new HashSet<string>();
+		foreach (string member in members) {
+			Members.Add(member);
+		}
+	}
+}
+
 // TODO: replace IncludeAttribute with this
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class JsonInclude : Attribute {
-}
-
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-public class JsonTypeHint : Attribute {
-	public string HintName { get; private set; }
-
-	public JsonTypeHint(string hintName = "__type__") {
-		HintName = hintName;
-	}
 }
 
 }

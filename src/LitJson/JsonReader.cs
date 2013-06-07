@@ -92,6 +92,12 @@ namespace LitJson
         public object Value {
             get { return token_value; }
         }
+
+        public bool TypeHinting { get; set; }
+
+        public string HintTypeName { get; set; }
+
+        public string HintValueName { get; set; }
         #endregion
 
 
@@ -133,6 +139,10 @@ namespace LitJson
 
             this.reader = reader;
             reader_is_owned = owned;
+
+            TypeHinting = false;
+            HintTypeName = "__type__";
+            HintValueName = "__value__";
         }
         #endregion
 

@@ -25,7 +25,6 @@ namespace LitJson
         public bool           IsField;
         public Type           Type;
         public JsonIgnoreWhen Ignore;
-        public string hintName;
     }
 
 
@@ -222,6 +221,14 @@ namespace LitJson
 
             data.Properties = new Dictionary<string, PropertyMetadata> ();
 
+            HashSet<string> ignoredMembers = new HashSet<string>();
+            foreach (Attribute attr in type.GetCustomAttributes(true)) {
+                if (attr is JsonIgnoreMember) {
+                    JsonIgnoreMember ignoredMemberAttr = (JsonIgnoreMember)attr;
+                    ignoredMembers.UnionWith(ignoredMemberAttr.Members);
+                }
+            }
+
             foreach (PropertyInfo p_info in type.GetProperties (BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
                 if (p_info.Name == "Item") {
                     ParameterInfo[] parameters = p_info.GetIndexParameters ();
@@ -249,6 +256,10 @@ namespace LitJson
                 p_data.Info = p_info;
                 p_data.Type = p_info.PropertyType;
 
+                if (ignoredMembers.Contains(p_info.Name)) {
+                    p_data.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
+                }
+
                 ProcessAttributes(ref p_data, p_info);
 
                 data.Properties.Add (p_info.Name, p_data);
@@ -265,6 +276,10 @@ namespace LitJson
                 p_data.Info = f_info;
                 p_data.IsField = true;
                 p_data.Type = f_info.FieldType;
+
+                if (ignoredMembers.Contains(f_info.Name)) {
+                    p_data.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
+                }
 
                 ProcessAttributes(ref p_data, f_info);
 
@@ -341,10 +356,6 @@ namespace LitJson
                 if (attr is JsonIgnore) {
                     JsonIgnore ignore_attr = (JsonIgnore)attr;
                     p_data.Ignore = ignore_attr.Usage;
-
-                } else if (attr is JsonTypeHint) {
-                    JsonTypeHint hint_attr = (JsonTypeHint)attr;
-                    p_data.hintName = hint_attr.HintName;
                 }
             }
         }
@@ -353,6 +364,16 @@ namespace LitJson
             FactoryFunc factory;
             if (custom_factory_table.TryGetValue(type, out factory)) {
                 return factory();
+            }
+            // construct the new instance with the default constructor (if present), handles structs as well
+            ConstructorInfo constructor = type.GetConstructor(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, 
+                null, 
+                Type.EmptyTypes, 
+                null
+            );
+            if (constructor != null) {
+                constructor.Invoke(null);   
             }
             return Activator.CreateInstance(type);
         }
@@ -507,6 +528,31 @@ namespace LitJson
 
             } else if (reader.Token == JsonToken.ObjectStart) {
 
+                bool done = false;
+                string property = null;
+                reader.Read();
+                if (reader.Token == JsonToken.ObjectEnd) {
+                    done = true;
+                } else {
+                    property = (string)reader.Value;
+                    if (reader.TypeHinting && property == reader.HintTypeName) {
+                        reader.Read();
+                        string typeName = (string)reader.Value;
+                        reader.Read();
+                        if ((string)reader.Value == reader.HintValueName) {
+                            value_type = Type.GetType(typeName);
+                            object value = ReadValue(value_type, reader);
+                            reader.Read();
+                            if (reader.Token != JsonToken.ObjectEnd) {
+                                throw new JsonException("Invalid type hinting object, has too many properties");
+                            }
+                            return value;
+                        } else {
+                            throw new JsonException("Expected __value__ property for type hinting but instead got "+reader.Value);
+                        }
+                    }
+                }
+
                 // If there's a custom importer that fits, use to create a JsonData type instead.
                 // Once the object is deserialzied, it will be invoked to create the actual converted object.
                 ImporterFunc importer = null;
@@ -521,22 +567,19 @@ namespace LitJson
                 AddObjectMetadata (value_type);
                 ObjectMetadata t_data = object_metadata[value_type];
 
-                // construct the new instance, handles structs as well
-                ConstructorInfo constructor = value_type.GetConstructor(
-                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, 
-                    null, 
-                    Type.EmptyTypes, 
-                    null);
-                instance = constructor != null ? constructor.Invoke(null) : CreateInstance(value_type);
+                instance = CreateInstance(value_type);
 
-                while (true) {
-                    reader.Read ();
-
-                    if (reader.Token == JsonToken.ObjectEnd)
-                        break;
-
-                    string property = (string) reader.Value;
-
+                bool firstRun = true;
+                while (!done) {
+                    if (firstRun) {
+                        firstRun = false;
+                    } else {
+                        reader.Read();
+                        if (reader.Token == JsonToken.ObjectEnd) {
+                            break;   
+                        }
+                        property = (string)reader.Value;
+                    }
                     if (t_data.Properties.ContainsKey (property)) {
                         PropertyMetadata prop_data =
                             t_data.Properties[property];
@@ -881,33 +924,73 @@ namespace LitJson
 
             if (obj is Array) {
                 writer.WriteArrayStart ();
-
-                foreach (object elem in (Array) obj)
-                    WriteValue (elem, writer, writer_is_private, depth + 1);
-
-                writer.WriteArrayEnd ();
-
-                return;
-            }
-
-            if (obj is IList) {
-                writer.WriteArrayStart ();
-                foreach (object elem in (IList) obj)
-                    WriteValue (elem, writer, writer_is_private, depth + 1);
-                writer.WriteArrayEnd ();
-
-                return;
-            }
-
-            if (obj is IDictionary) {
-                writer.WriteObjectStart ();
-                foreach (DictionaryEntry entry in (IDictionary) obj) {
-                    writer.WritePropertyName ((string) entry.Key);
-                    WriteValue (entry.Value, writer, writer_is_private,
-                                depth + 1);
+                Array arr = (Array)obj;
+                Type elemType = arr.GetType().GetElementType();
+                foreach (object elem in arr) {
+                    // if the collection contains polymorphic elements, we need to include type information for deserialization
+                    if (writer.TypeHinting && elem.GetType() != elemType) {
+                        writer.WriteObjectStart();
+                        writer.WritePropertyName(writer.HintTypeName);
+                        writer.Write(elem.GetType().FullName);
+                        writer.WritePropertyName(writer.HintValueName);
+                        WriteValue(elem, writer, writer_is_private, depth + 1);
+                        writer.WriteObjectEnd();
+                    } else {
+                        WriteValue(elem, writer, writer_is_private, depth + 1);    
+                    }
                 }
-                writer.WriteObjectEnd ();
-
+                writer.WriteArrayEnd();
+                return;
+            }
+            if (obj is IList) {
+                writer.WriteArrayStart();
+                IList list = (IList)obj;
+                // collection might be non-generic type like Arraylist
+                Type elemType = typeof(object);
+                if (list.GetType().GetGenericArguments().Length > 0) {
+                    // collection is a generic type like List<T>
+                    elemType = list.GetType().GetGenericArguments()[0];
+                }
+                foreach (object elem in list) {
+                    // if the collection contains polymorphic elements, we need to include type information for deserialization
+                    if (writer.TypeHinting && elem.GetType() != elemType) {
+                        writer.WriteObjectStart();
+                        writer.WritePropertyName(writer.HintTypeName);
+                        writer.Write(elem.GetType().AssemblyQualifiedName);
+                        writer.WritePropertyName(writer.HintValueName);
+                        WriteValue(elem, writer, writer_is_private, depth + 1);
+                        writer.WriteObjectEnd();
+                    } else {
+                        WriteValue(elem, writer, writer_is_private, depth + 1);    
+                    }
+                }
+                writer.WriteArrayEnd();
+                return;
+            }
+            if (obj is IDictionary) {
+                writer.WriteObjectStart();
+                IDictionary dict = (IDictionary)obj;
+                // collection might be non-generic type like Hashtable
+                Type elemType = typeof(object);
+                if (dict.GetType().GetGenericArguments().Length > 1) {
+                    // collection is a generic type like Dictionary<T, V>
+                    elemType = dict.GetType().GetGenericArguments()[1];
+                }
+                foreach (DictionaryEntry entry in dict) {
+                    writer.WritePropertyName((string)entry.Key);
+                    // if the collection contains polymorphic elements, we need to include type information for deserialization
+                    if (writer.TypeHinting && entry.Value.GetType() != elemType) {
+                        writer.WriteObjectStart();
+                        writer.WritePropertyName(writer.HintTypeName);
+                        writer.Write(entry.Value.GetType().AssemblyQualifiedName);
+                        writer.WritePropertyName(writer.HintValueName);
+                        WriteValue(entry.Value, writer, writer_is_private, depth + 1);
+                        writer.WriteObjectEnd();
+                    } else {
+                        WriteValue(entry.Value, writer, writer_is_private, depth + 1);
+                    }
+                }
+                writer.WriteObjectEnd();
                 return;
             }
 
@@ -948,29 +1031,48 @@ namespace LitJson
             AddTypeProperties (obj_type);
             IList<PropertyMetadata> props = type_properties[obj_type];
 
-            writer.WriteObjectStart ();
+            writer.WriteObjectStart();
             foreach (PropertyMetadata p_data in props) {
-
                 // Don't serialize a field or property with the JsonIgnore attribute with serialization usage
-                if ((p_data.Ignore & JsonIgnoreWhen.Serializing) > 0)
+                if ((p_data.Ignore & JsonIgnoreWhen.Serializing) > 0) {
                     continue;
-
+                }
                 if (p_data.IsField) {
-                    writer.WritePropertyName (p_data.Info.Name);
-                    WriteValue (((FieldInfo) p_data.Info).GetValue (obj),
-                                writer, writer_is_private, depth + 1);
+                    FieldInfo info = (FieldInfo)p_data.Info;
+                    writer.WritePropertyName(info.Name);
+                    object value = info.GetValue(obj);
+                    if (writer.TypeHinting && info.FieldType != value.GetType()) {
+                        // the object stored in the field might be a different type that what was declared, need type hinting
+                        writer.WriteObjectStart();
+                        writer.WritePropertyName(writer.HintTypeName);
+                        writer.Write(value.GetType().AssemblyQualifiedName);
+                        writer.WritePropertyName(writer.HintValueName);
+                        WriteValue(value, writer, writer_is_private, depth + 1);
+                        writer.WriteObjectEnd();
+                    } else {
+                        WriteValue(value, writer, writer_is_private, depth + 1);
+                    }
                 }
                 else {
-                    PropertyInfo p_info = (PropertyInfo) p_data.Info;
-
-                    if (p_info.CanRead) {
-                        writer.WritePropertyName (p_data.Info.Name);
-                        WriteValue (p_info.GetValue (obj, null),
-                                    writer, writer_is_private, depth + 1);
+                    PropertyInfo info = (PropertyInfo)p_data.Info;
+                    if (info.CanRead) {
+                        writer.WritePropertyName(info.Name);
+                        object value = info.GetValue(obj, null);
+                        if (writer.TypeHinting && info.PropertyType != value.GetType()) {
+                            // the object stored in the property might be a different type that what was declared, need type hinting
+                            writer.WriteObjectStart();
+                            writer.WritePropertyName(writer.HintTypeName);
+                            writer.Write(value.GetType().AssemblyQualifiedName);
+                            writer.WritePropertyName(writer.HintValueName);
+                            WriteValue(value, writer, writer_is_private, depth + 1);
+                            writer.WriteObjectEnd();
+                        } else {
+                            WriteValue(value, writer, writer_is_private, depth + 1);
+                        }
                     }
                 }
             }
-            writer.WriteObjectEnd ();
+            writer.WriteObjectEnd();
         }
         #endregion
 

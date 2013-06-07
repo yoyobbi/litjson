@@ -76,6 +76,12 @@ namespace LitJson
             get { return validate; }
             set { validate = value; }
         }
+
+        public bool TypeHinting { get; set; }
+
+        public string HintTypeName { get; set; }
+
+        public string HintValueName { get; set; }
         #endregion
 
 
@@ -166,6 +172,10 @@ namespace LitJson
             indent_value = 4;
             pretty_print = false;
             validate = true;
+
+            TypeHinting = false;
+            HintTypeName = "__type__";
+            HintValueName = "__value__";
 
             ctx_stack = new Stack<WriterContext> ();
             context = new WriterContext ();

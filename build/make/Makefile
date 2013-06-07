@@ -47,12 +47,15 @@ TEST_MONO_NUNIT = $(shell pkg-config --libs mono-nunit)
 
 TEST_RES_FILES = $(testdir)/json-example.txt
 TEST_SRC_FILES = \
+	$(testdir)/JsonMapperTest.cs         \
 	$(testdir)/JsonDataTest.cs           \
 	$(testdir)/JsonReaderTest.cs         \
 	$(testdir)/JsonWriterTest.cs         \
 	$(testdir)/JsonIgnoreTest.cs         \
 	$(testdir)/JsonObjectImporterTest.cs \
-	$(testdir)/JsonArrayImporterTest.cs
+	$(testdir)/JsonArrayImporterTest.cs  \
+	$(testdir)/JsonTypeHintingTest.cs    \
+	$(testdir)/JsonIgnoreMemberTest.cs
 
 CLEAN_FILES += $(TEST_ASSEMBLY) $(TEST_MDB_FILE) $(builddir)/TestResult.xml
 
