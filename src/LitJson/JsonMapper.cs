@@ -928,7 +928,7 @@ namespace LitJson
                 Type elemType = arr.GetType().GetElementType();
                 foreach (object elem in arr) {
                     // if the collection contains polymorphic elements, we need to include type information for deserialization
-                    if (writer.TypeHinting && elem.GetType() != elemType) {
+                    if (writer.TypeHinting && elem != null & elem.GetType() != elemType) {
                         writer.WriteObjectStart();
                         writer.WritePropertyName(writer.HintTypeName);
                         writer.Write(elem.GetType().FullName);
@@ -953,7 +953,7 @@ namespace LitJson
                 }
                 foreach (object elem in list) {
                     // if the collection contains polymorphic elements, we need to include type information for deserialization
-                    if (writer.TypeHinting && elem.GetType() != elemType) {
+                    if (writer.TypeHinting && elem != null && elem.GetType() != elemType) {
                         writer.WriteObjectStart();
                         writer.WritePropertyName(writer.HintTypeName);
                         writer.Write(elem.GetType().AssemblyQualifiedName);
@@ -979,7 +979,7 @@ namespace LitJson
                 foreach (DictionaryEntry entry in dict) {
                     writer.WritePropertyName((string)entry.Key);
                     // if the collection contains polymorphic elements, we need to include type information for deserialization
-                    if (writer.TypeHinting && entry.Value.GetType() != elemType) {
+                    if (writer.TypeHinting && entry.Value != null && entry.Value.GetType() != elemType) {
                         writer.WriteObjectStart();
                         writer.WritePropertyName(writer.HintTypeName);
                         writer.Write(entry.Value.GetType().AssemblyQualifiedName);
@@ -1041,7 +1041,7 @@ namespace LitJson
                     FieldInfo info = (FieldInfo)p_data.Info;
                     writer.WritePropertyName(info.Name);
                     object value = info.GetValue(obj);
-                    if (writer.TypeHinting && info.FieldType != value.GetType()) {
+                    if (writer.TypeHinting && value != null && info.FieldType != value.GetType()) {
                         // the object stored in the field might be a different type that what was declared, need type hinting
                         writer.WriteObjectStart();
                         writer.WritePropertyName(writer.HintTypeName);
@@ -1058,7 +1058,7 @@ namespace LitJson
                     if (info.CanRead) {
                         writer.WritePropertyName(info.Name);
                         object value = info.GetValue(obj, null);
-                        if (writer.TypeHinting && info.PropertyType != value.GetType()) {
+                        if (writer.TypeHinting && value != null && info.PropertyType != value.GetType()) {
                             // the object stored in the property might be a different type that what was declared, need type hinting
                             writer.WriteObjectStart();
                             writer.WritePropertyName(writer.HintTypeName);
