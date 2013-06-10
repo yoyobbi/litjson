@@ -31,7 +31,9 @@ public class JsonIgnoreMember : Attribute {
 	}
 }
 
-// TODO: replace IncludeAttribute with this
+/// <summary>
+/// Attribute to be placed on non-public fields or properties to include them in serialization.
+/// </summary>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class JsonInclude : Attribute {
 }

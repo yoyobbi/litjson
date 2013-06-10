@@ -322,6 +322,57 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 		throw new InvalidCastException("Instance of JsonData doesn't hold a real or natural number");
 	}
 
+	public static explicit operator decimal(JsonData data) {
+		if (data.IsReal) {
+			return data.GetReal();
+		}
+		if (data.IsNatural) {
+			return (decimal)data.GetNatural();
+		}
+		throw new InvalidCastException("Instance of JsonData doesn't hold a real or natural number");
+	}
+
+
+	public static explicit operator sbyte(JsonData data) {
+		if (data.IsNatural) {
+			return (sbyte)data.GetNatural();
+		}
+		if (data.IsReal) {
+			return (sbyte)data.GetReal();
+		}
+		throw new InvalidCastException("Instance of JsonData doesn't hold a real or natural number");
+	}
+
+	public static explicit operator byte(JsonData data) {
+		if (data.IsNatural) {
+			return (byte)data.GetNatural();
+		}
+		if (data.IsReal) {
+			return (byte)data.GetReal();
+		}
+		throw new InvalidCastException("Instance of JsonData doesn't hold a real or natural number");
+	}
+
+	public static explicit operator short(JsonData data) {
+		if (data.IsNatural) {
+			return (short)data.GetNatural();
+		}
+		if (data.IsReal) {
+			return (short)data.GetReal();
+		}
+		throw new InvalidCastException("Instance of JsonData doesn't hold a real or natural number");
+	}
+
+	public static explicit operator ushort(JsonData data) {
+		if (data.IsNatural) {
+			return (ushort)data.GetNatural();
+		}
+		if (data.IsReal) {
+			return (ushort)data.GetReal();
+		}
+		throw new InvalidCastException("Instance of JsonData doesn't hold a real or natural number");
+	}
+
 	public static explicit operator int(JsonData data) {
 		if (data.IsNatural) {
 			return (int)data.GetNatural();
