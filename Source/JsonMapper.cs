@@ -110,9 +110,9 @@ public class JsonMapper {
 		RegisterBaseImporters();
 	}
 
-	private static void AddArrayMetadata(Type type) {
+	private static ArrayMetadata AddArrayMetadata(Type type) {
 		if (arrayMetadata.ContainsKey(type)) {
-			return;
+			return arrayMetadata[type];
 		}
 		ArrayMetadata data = new ArrayMetadata();
 		data.IsArray = type.IsArray;
@@ -132,11 +132,12 @@ public class JsonMapper {
 			}
 		}
 		arrayMetadata[type] = data;
+		return data;
 	}
 
 	private static ObjectMetadata AddObjectMetadata(Type type) {
 		if (objectMetadata.ContainsKey(type)) {
-			return;
+			return objectMetadata[type];
 		}
 		ObjectMetadata data = new ObjectMetadata();
 		if (type.GetInterface("System.Collections.IDictionary") != null) {
@@ -202,12 +203,14 @@ public class JsonMapper {
 			data.Properties.Add(finfo.Name, pdata);
 		}
 		objectMetadata[type] = data;
+		return data;
 	}
 
-	private static void AddTypeProperties(Type type) {
+	private static IList<PropertyMetadata> AddTypeProperties(Type type) {
 		if (typeProperties.ContainsKey(type)) {
-			return;
+			return typeProperties[type];
 		}
+		HashSet<string> ignoredMembers = new HashSet<string>();
 		IList<PropertyMetadata> props = new List<PropertyMetadata>();
 		// Get all kinds of properties
 		BindingFlags pflags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
@@ -242,7 +245,7 @@ public class JsonMapper {
 			if (!finfo.IsPublic && finfo.GetCustomAttributes(typeof(JsonInclude), true).Length == 0) {
 				continue;
 			}
-			PropertyMetadata pdata = new PropertyMetadata ();
+			PropertyMetadata pdata = new PropertyMetadata();
 			pdata.Info = finfo;
 			pdata.IsField = true;
 			object[] ignoreAttrs = finfo.GetCustomAttributes(typeof(JsonIgnore), true);
@@ -254,6 +257,7 @@ public class JsonMapper {
 			props.Add(pdata);
 		}
 		typeProperties[type] = props;
+		return props;
 	}
 
 	private static object CreateInstance(Type type) {
@@ -296,6 +300,16 @@ public class JsonMapper {
 		return null;
 	}
 
+	private static ExporterFunc GetExporter(Type valueType) {
+		if (customExportTable.ContainsKey(valueType)) {
+			return customExportTable[valueType];
+		}
+		if (baseExportTable.ContainsKey(valueType)) {
+			return baseExportTable[valueType];
+		}
+		return null;
+	}
+
 	private static object ReadValue(Type instType, JsonReader reader) {
 		reader.Read();
 		if (reader.Token == JsonToken.ArrayEnd) {
@@ -309,9 +323,8 @@ public class JsonMapper {
 			}
 			throw new JsonException(string.Format("Can't assign null to an instance of type {0}", instType));
 		}
-		if (reader.Token == JsonToken.Double ||
-			reader.Token == JsonToken.Int ||
-			reader.Token == JsonToken.Long ||
+		if (reader.Token == JsonToken.Real ||
+			reader.Token == JsonToken.Natural ||
 			reader.Token == JsonToken.String ||
 			reader.Token == JsonToken.Boolean) {
 
@@ -420,8 +433,8 @@ public class JsonMapper {
 					}
 					property = (string)reader.Value;
 				}
-				PropertyMetadata pdata = tdata.Properties[property];
-				if (pdata != null) {
+				PropertyMetadata pdata;
+				if (tdata.Properties.TryGetValue(property, out pdata)) {
 					// Don't deserialize a field or property that has a JsonIgnore attribute with deserialization usage.
 					if ((pdata.Ignore & JsonIgnoreWhen.Deserializing) > 0) {
 						ReadSkip(reader);
@@ -510,7 +523,7 @@ public class JsonMapper {
 	}
 
 	private static void RegisterBaseExporters() {
-		baseExportTable[typeof[sbyte]] = delegate(object obj, JsonWriter writer) {
+		baseExportTable[typeof(sbyte)] = delegate(object obj, JsonWriter writer) {
 			writer.Write(Convert.ToInt64((sbyte)obj));
 		};
 		baseExportTable[typeof(byte)] = delegate(object obj, JsonWriter writer) {
@@ -700,11 +713,12 @@ public class JsonMapper {
 		// Last option, let's see if it's an enum
 		if (obj is Enum) {
 			Type enumType = Enum.GetUnderlyingType(objType);
-			ExporterFunc enumConverter = GetExporter(enumType);
-			if (enumConverter != null) {
-				object val = enumConverter(obj);
-				if (val is long) {
-					writer.Write((long)val);
+			if (enumType == typeof(long)) {
+				writer.Write((long)obj);
+			} else {
+				ExporterFunc enumConverter = GetExporter(enumType);
+				if (enumConverter != null) {
+					enumConverter(obj, writer);
 				}
 			}
 			return;

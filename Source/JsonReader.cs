@@ -14,6 +14,7 @@ namespace LitJson {
 
 public enum JsonToken {
 	None,
+	Null,
 
 	ObjectStart,
 	PropertyName,
@@ -22,14 +23,12 @@ public enum JsonToken {
 	ArrayStart,
 	ArrayEnd,
 
-	Int,
-	Long,
-	Double,
+	Real,
+	Natural,
 
 	String,
 
-	Boolean,
-	Null
+	Boolean
 }
 
 /// <summary>
@@ -44,7 +43,6 @@ public class JsonReader {
 	private int currentInput, currentSymbol;
 	private bool parserInString, parserReturn;
 	private bool readStarted, readerIsOwned;
-	private object tokenValue;
 
 	public bool AllowComments {
 		get { return lexer.AllowComments; }
@@ -60,13 +58,11 @@ public class JsonReader {
 	public bool TypeHinting { get; set; }
 	public string HintTypeName { get; set; }
 	public string HintValueName { get; set; }
-	public bool TypeHinting { get; set; }
-	public string HintTypeName { get; set; }
-	public string HintValueName { get; set; }
 
 	public bool EndOfInput { get; private set; }
 	public bool EndOfJson { get; private set; }
 	public JsonToken Token { get; private set; }
+	public object Value { get; private set; }
 
 	public JsonReader(string json) : this(new StringReader(json), true) {
 	}
@@ -233,19 +229,19 @@ public class JsonReader {
 			double real;
 			if (double.TryParse (number, out real)) {
 				Token = JsonToken.Real;
-				tokenValue = real;
+				Value = real;
 				return;
 			}
 		}
 		long natural;
 		if (long.TryParse (number, out natural)) {
 			Token = JsonToken.Natural;
-			tokenValue = natural;
+			Value = natural;
 			return;
 		}
 		// Shouldn't happen, but just in case, return something
 		Token = JsonToken.Natural;
-		tokenValue = 0;
+		Value = 0;
 	}
 
 	private void ProcessSymbol() {
@@ -272,10 +268,10 @@ public class JsonReader {
 				parserInString = true;
 			}
 		} else if (currentSymbol == (int)ParserToken.CharSeq) {
-			tokenValue = lexer.StringValue;
+			Value = lexer.StringValue;
 		} else if (currentSymbol == (int)ParserToken.False)  {
 			Token = JsonToken.Boolean;
-			tokenValue = false;
+			Value = false;
 			parserReturn = true;
 		} else if (currentSymbol == (int)ParserToken.Null)  {
 			Token = JsonToken.Null;
@@ -287,7 +283,7 @@ public class JsonReader {
 			Token = JsonToken.PropertyName;
 		} else if (currentSymbol == (int)ParserToken.True)  {
 			Token = JsonToken.Boolean;
-			tokenValue = true;
+			Value = true;
 			parserReturn = true;
 		}
 	}
@@ -331,7 +327,7 @@ public class JsonReader {
 		parserReturn = false;
 
 		Token = JsonToken.None;
-		tokenValue = null;
+		Value = null;
 
 		if (!readStarted) {
 			readStarted = true;

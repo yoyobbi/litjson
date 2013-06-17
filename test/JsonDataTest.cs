@@ -56,12 +56,12 @@ namespace LitJson.Test
             JsonData data;
 
             data = 3e6;
-            Assert.IsTrue (data.IsDouble, "A1");
+            Assert.IsTrue (data.IsReal, "A1");
             Assert.AreEqual (3e6, (double) data, "A2");
             Assert.AreEqual ("3000000.0", data.ToJson (), "A3");
 
             data = 3.14;
-            Assert.IsTrue (data.IsDouble, "A4");
+            Assert.IsTrue (data.IsReal, "A4");
             Assert.AreEqual (3.14, (double) data, "A5");
             Assert.AreEqual ("3.14", data.ToJson (), "A6");
 
@@ -77,13 +77,13 @@ namespace LitJson.Test
             JsonData data;
 
             data = 13;
-            Assert.IsTrue (data.IsInt, "A1");
+            Assert.IsTrue (data.IsNatural, "A1");
             Assert.AreEqual ((int) data, 13, "A2");
             Assert.AreEqual (data.ToJson (), "13", "A3");
 
             data = -00500;
 
-            Assert.IsTrue (data.IsInt, "A4");
+            Assert.IsTrue (data.IsNatural, "A4");
             Assert.AreEqual ((int) data, -500, "A5");
             Assert.AreEqual (data.ToJson (), "-500", "A6");
 
@@ -148,7 +148,7 @@ namespace LitJson.Test
             Assert.IsTrue (a.Equals (b), "A4");
 
             b = 10;
-            Assert.IsFalse (a.Equals (b), "A5");
+            Assert.IsTrue (a.Equals (b), "A5");
             b = 11L;
             Assert.IsFalse (a.Equals (b), "A6");
 

@@ -45,7 +45,7 @@ internal class Lexer {
 
 	public Lexer(TextReader reader) {
 		AllowComments = true;
-		AllowSingleQuotes = true;
+		AllowSingleQuotedStrings = true;
 
 		inputBuffer = 0;
 		stringBuffer = new StringBuilder(128);
@@ -213,7 +213,7 @@ internal class Lexer {
 				ctx.NextState = 9;
 				return true;
 			case '\'':
-				if (!ctx.L.AllowSingleQuotes) {
+				if (!ctx.L.AllowSingleQuotedStrings) {
 					return false;
 				}
 				ctx.L.inputChar = '"';

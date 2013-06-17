@@ -677,8 +677,12 @@ namespace LitJson.Test
 					ignored = true
 				}
 			};
-
-			string json2 = JsonMapper.ToJson(o_test);
+			string json2 = null;
+			try {
+				json2 = JsonMapper.ToJson(o_test);
+			} catch (System.Exception e) {
+				System.Console.WriteLine(e);
+			}
 			Assert.AreEqual(Regex.Replace(json, @"\s+", ""), json2);
 		}
 

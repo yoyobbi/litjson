@@ -20,7 +20,7 @@ public class JsonException : ApplicationException {
 	internal JsonException(ParserToken token) : base(string.Format("Invalid token '{0}' in input string", token)) {
 	}
 
-	internal JsonException(ParserToken token, Exception inner) : base(string.Format("Invalid token '{0}' in input string", token), inner); {
+	internal JsonException(ParserToken token, Exception inner) : base(string.Format("Invalid token '{0}' in input string", token), inner) {
 	}
 
 	internal JsonException(int c) : base(string.Format("Invalid character '{0}' in input string", (char)c)) {

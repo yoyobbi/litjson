@@ -70,7 +70,7 @@ public class JsonWriter {
 	}
 
 	public JsonWriter(TextWriter writer) {
-		if (TextWriter == null) {
+		if (writer == null) {
 			throw new ArgumentNullException("writer");
 		}
 		this.TextWriter = writer;
@@ -246,7 +246,8 @@ public class JsonWriter {
 	public void Write(double number) {
 		DoValidation(Condition.Value);
 		PutNewline();
-		Put(Convert.ToString(number, numberFormat));
+		string str = Convert.ToString(number, numberFormat);
+		Put(str);
 		if (str.IndexOf('.') == -1 && str.IndexOf('E') == -1) {
 			TextWriter.Write(".0");
 		}

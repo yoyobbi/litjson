@@ -100,7 +100,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 			foreach (KeyValuePair<string, JsonData> entry in list) {
 				keys.Add(entry.Key);
 			}
-			return keys;
+			return (ICollection)keys;
 		}
 	}
 
@@ -111,7 +111,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 			foreach (KeyValuePair<string, JsonData> entry in list) {
 				values.Add(entry.Value);
 			}
-			return values;
+			return (ICollection)values;
 		}
 	}
 
@@ -207,7 +207,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 			if (type == JsonType.Array) {
 				return GetArray()[index];
 			}
-			return GetObject()[index].Value;
+			return list[index].Value;
 		}
 		set {
 			EnsureCollection();
@@ -226,9 +226,6 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 	#endregion
 
 	#region Constructors
-
-	public JsonData() {
-	}
 
 	public JsonData(bool boolean) {
 		type = JsonType.Boolean;
@@ -254,15 +251,72 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 		if (obj is bool) {
 			type = JsonType.Boolean;
 		}  else if (obj is double) {
-			type = JsonType.Double;
-		} else if (obj is int) {
-			type = JsonType.Int;
+			type = JsonType.Real;
+		} else if (obj is long) {
+			type = JsonType.Natural;
 		} else if (obj is string) {
 			type = JsonType.String;
+		} else if (obj is sbyte) {
+			type = JsonType.Natural;
+			obj = (long)(sbyte)obj;
+		} else if (obj is byte) {
+			type = JsonType.Natural;
+			obj = (long)(byte)obj;
+		} else if (obj is short) {
+			type = JsonType.Natural;
+			obj = (long)(short)obj;
+		} else if (obj is ushort) {
+			type = JsonType.Natural;
+			obj = (long)(ushort)obj;
+		} else if (obj is int) {
+			type = JsonType.Natural;
+			obj = (long)(int)obj;
+		} else if (obj is uint) {
+			type = JsonType.Natural;
+			obj = (long)(uint)obj;
+		} else if (obj is ulong) {
+			type = JsonType.Natural;
+			obj = (long)(ulong)obj;
+		} else if (obj is float) {
+			type = JsonType.Real;
+			obj = (double)(float)obj;
+		} else if (obj is decimal) {
+			type = JsonType.Real;
+			obj = (double)(decimal)obj;
 		} else {
 			throw new ArgumentException ("Unable to wrap "+obj+" of type "+(obj == null ? null : obj.GetType())+" with JsonData");
 		}
 		val = obj;
+	}
+
+	public JsonData() {
+	}
+
+	public JsonData(sbyte number) : this((long)number) {
+	}
+
+	public JsonData(byte number) : this((long)number) {
+	}
+
+	public JsonData(short number) : this((long)number) {
+	}
+
+	public JsonData(ushort number) : this((long)number) {
+	}
+
+	public JsonData(int number) : this((long)number) {
+	}
+
+	public JsonData(uint number) : this((long)number) {
+	}
+
+	public JsonData(ulong number) : this((long)number) {
+	}
+
+	public JsonData(float number) : this((double)number) {
+	}
+
+	public JsonData(decimal number) : this((double)number) {
 	}
 
 	#endregion
@@ -324,7 +378,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 
 	public static explicit operator decimal(JsonData data) {
 		if (data.IsReal) {
-			return data.GetReal();
+			return (decimal)data.GetReal();
 		}
 		if (data.IsNatural) {
 			return (decimal)data.GetNatural();
@@ -416,7 +470,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 	}
 
 	public static explicit operator string(JsonData data) {
-		return val == null ? null : val.ToString();
+		return data.val == null ? null : data.val.ToString();
 	}
 
 	#endregion
@@ -476,28 +530,32 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 
 	#region IJsonWrapper Methods
 
-	bool IJsonWrapper.GetBoolean() {
+	public bool GetBoolean() {
 		if (IsBoolean) {
 			return (bool)val;
 		}
 		throw new InvalidOperationException("JsonData instance doesn't hold a boolean");
 	}
 
-	double IJsonWrapper.GetReal() {
+	public double GetReal() {
 		if (IsReal) {
 			return (double)val;
 		}
 		throw new InvalidOperationException("JsonData instance doesn't hold a real number");
 	}
 
-	long IJsonWrapper.GetNatural() {
+	public long GetNatural() {
 		if (IsNatural) {
-			return (long)val;
+			try {
+				return (long)val;
+			} catch {
+				throw new InvalidCastException("expected long but got "+val.GetType()+" from "+val);
+			}
 		}
 		throw new InvalidOperationException("JsonData instance doesn't hold a natural number");
 	}
 
-	string IJsonWrapper.GetString() {
+	public string GetString() {
 		if (IsString) {
 			return (string)val;
 		}
@@ -518,25 +576,25 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 		throw new InvalidOperationException("JsonData instance doesn't hold an array");
 	}
 
-	void IJsonWrapper.SetBoolean(bool val) {
+	public void SetBoolean(bool val) {
 		type = JsonType.Boolean;
 		this.val = val;
 		json = null;
 	}
 
-	void IJsonWrapper.SetReal(double val) {
+	public void SetReal(double val) {
 		type = JsonType.Real;
 		this.val = val;
 		json = null;
 	}
 
-	void IJsonWrapper.SetNatural(long val) {
+	public void SetNatural(long val) {
 		type = JsonType.Natural;
 		this.val = val;
 		json = null;
 	}
 
-	void IJsonWrapper.SetString(string val) {
+	public void SetString(string val) {
 		type = JsonType.String;
 		this.val = val;
 		json = null;
@@ -694,6 +752,10 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 		}
 	}
 
+	public bool Equals(JsonData data) {
+		return Equals((object)data);
+	}
+
 	public override bool Equals(object obj) {
 		if (obj == null) {
 			return false;
@@ -793,7 +855,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 		case JsonType.None:
 			return "Uninitialized JsonData";
 		}
-		return val == null ? : "null" : val.ToString();
+		return val == null ? "null" : val.ToString();
 	}
 }
 
