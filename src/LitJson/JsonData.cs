@@ -445,6 +445,7 @@ namespace LitJson
             return data.inst_int;
         }
 
+        [CLSCompliant(false)]
         public static explicit operator UInt32 (JsonData data)
         {
             if (data.type != JsonType.Int)
@@ -463,6 +464,7 @@ namespace LitJson
             return data.inst_long;
         }
 
+        [CLSCompliant(false)]
         public static explicit operator UInt64 (JsonData data)
         {
             if (data.type != JsonType.Long)

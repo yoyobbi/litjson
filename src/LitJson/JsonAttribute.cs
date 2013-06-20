@@ -14,7 +14,11 @@ public enum JsonIgnoreWhen {
 public class JsonIgnore : Attribute {
 	public JsonIgnoreWhen Usage { get; private set; }
 
-	public JsonIgnore(JsonIgnoreWhen usage = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing) {
+	public JsonIgnore() {
+		Usage = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
+	}
+
+	public JsonIgnore(JsonIgnoreWhen usage) {
 		Usage = usage;
 	}
 }
@@ -23,11 +27,12 @@ public class JsonIgnore : Attribute {
 public class JsonIgnoreMember : Attribute {
 	public HashSet<string> Members { get; private set; }
 
+	public JsonIgnoreMember(IEnumerable<string> members) {
+		Members = new HashSet<string>(members);
+	}
+
 	public JsonIgnoreMember(params string[] members) {
-		Members = new HashSet<string>();
-		foreach (string member in members) {
-			Members.Add(member);
-		}
+		Members = new HashSet<string>(members);
 	}
 }
 
