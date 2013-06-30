@@ -15,7 +15,7 @@ namespace LitJson.Benchmarks
         {
             person = (JavaScriptObject)
                 JavaScriptConvert.DeserializeObject (
-                    Common.PersonJson, typeof (JavaScriptObject));
+                    Common.PersonJson, typeof(JavaScriptObject));
         }
 
         [Benchmark]
@@ -24,7 +24,7 @@ namespace LitJson.Benchmarks
             for (int i = 0; i < Common.Iterations; i++) {
                 string json = JavaScriptConvert.SerializeObject (person);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
 
@@ -35,7 +35,7 @@ namespace LitJson.Benchmarks
                 string json = JavaScriptConvert.SerializeObject (
                     Common.HashtablePerson);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
 
@@ -46,7 +46,7 @@ namespace LitJson.Benchmarks
                 string json = JavaScriptConvert.SerializeObject (
                     Common.SamplePerson);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
     }

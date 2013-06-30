@@ -22,7 +22,7 @@ namespace LitJson.Benchmarks
             for (int i = 0; i < Common.Iterations; i++) {
                 string json = JsonConvert.ExportToString (person);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
 
@@ -33,7 +33,7 @@ namespace LitJson.Benchmarks
                 string json = JsonConvert.ExportToString (
                     Common.HashtablePerson);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
 
@@ -44,7 +44,7 @@ namespace LitJson.Benchmarks
                 string json = JsonConvert.ExportToString (
                     Common.SamplePerson);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
     }

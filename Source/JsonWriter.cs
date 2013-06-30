@@ -100,7 +100,7 @@ public class JsonWriter {
 			break;
 		case Condition.NotAProperty:
 			if (context.InObject && !context.ExpectingValue) {
-				throw new JsonException("Expected a property");
+				throw new JsonException("Expected a property in obj? "+context.InObject+" expect val? "+context.ExpectingValue+" <"+stringBuilder.ToString()+">");
 			}
 			break;
 

@@ -292,6 +292,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 	public JsonData() {
 	}
 
+	[CLSCompliant(false)]
 	public JsonData(sbyte number) : this((long)number) {
 	}
 
@@ -301,15 +302,18 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 	public JsonData(short number) : this((long)number) {
 	}
 
+	[CLSCompliant(false)]
 	public JsonData(ushort number) : this((long)number) {
 	}
 
 	public JsonData(int number) : this((long)number) {
 	}
 
+	[CLSCompliant(false)]
 	public JsonData(uint number) : this((long)number) {
 	}
 
+	[CLSCompliant(false)]
 	public JsonData(ulong number) : this((long)number) {
 	}
 
@@ -387,6 +391,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 	}
 
 
+	[CLSCompliant(false)]
 	public static explicit operator sbyte(JsonData data) {
 		if (data.IsNatural) {
 			return (sbyte)data.GetNatural();
@@ -417,6 +422,7 @@ public class JsonData : IJsonWrapper, IEquatable<JsonData> {
 		throw new InvalidCastException("Instance of JsonData doesn't hold a real or natural number");
 	}
 
+	[CLSCompliant(false)]
 	public static explicit operator ushort(JsonData data) {
 		if (data.IsNatural) {
 			return (ushort)data.GetNatural();

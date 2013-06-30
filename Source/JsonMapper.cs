@@ -15,44 +15,49 @@ using System.Reflection;
 namespace LitJson {
 
 internal struct PropertyMetadata {
-	public MemberInfo Info;
-	public bool IsField, Include;
-	public Type Type;
-	public JsonIgnoreWhen Ignore;
+	public Type Type { get; set; }
+	public MemberInfo Info { get; set; }
+	public JsonIgnoreWhen Ignore { get; set; }
+	public string Alias { get; set; }
+	public bool IsField { get; set; }
+	public bool Include { get; set; }
 }
 
 internal struct ArrayMetadata {
-	private Type elemType;
+	public bool IsArray { get; set; }
+	public bool IsList { get; set; }
 
+	private Type elemType;
 	public Type ElementType {
 		get {
 			if (elemType == null) {
-				return typeof(JsonData);
+				elemType = typeof(JsonData);
 			}
 			return elemType;
 		}
-		set { elemType = value; }
+		set {
+			elemType = value;
+		}
 	}
-
-	public bool IsArray { get; set; }
-	public bool IsList { get; set; }
 }
 
 internal struct ObjectMetadata {
-	private Type elemType;
+	public IDictionary<string, PropertyMetadata> Properties { get; set; }
+	public IDictionary<string, string> Aliases { get; set; }
+	public bool IsDictionary { get; set; }
 
+	private Type elemType;
 	public Type ElementType {
 		get {
 			if (elemType == null) {
-				return typeof(JsonData);
+				elemType = typeof(JsonData);
 			}
 			return elemType;
 		}
-		set { elemType = value; }
+		set {
+			elemType = value;
+		}
 	}
-
-	public bool IsDictionary { get; set; }
-	public IDictionary<string, PropertyMetadata> Properties { get; set; }
 }
 
 internal delegate void ExporterFunc(object obj, JsonWriter writer);
@@ -151,6 +156,7 @@ public class JsonMapper {
 				ignoredMembers.UnionWith(ignoredMemberAttr.Members);
 			}
 		}
+		data.Aliases = new Dictionary<string, string>();
 		// Get all kinds of declared properties
 		BindingFlags pflags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 		foreach (PropertyInfo pinfo in type.GetProperties(pflags)) {
@@ -181,6 +187,14 @@ public class JsonMapper {
 			} else if (ignoredMembers.Contains(pinfo.Name)) {
 				pdata.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
 			}
+			object[] aliasAttrs = pinfo.GetCustomAttributes(typeof(JsonAlias), true);
+			if (aliasAttrs.Length > 0) {
+				JsonAlias aliasAttr = (JsonAlias)aliasAttrs[0];
+				pdata.Alias = aliasAttr.Alias;
+				if (aliasAttr.AcceptOriginal) {
+					data.Aliases.Add(aliasAttr.Alias, pinfo.Name);
+				}
+			}
 			data.Properties.Add(pinfo.Name, pdata);
 		}
 		// Get all kinds of declared fields
@@ -200,9 +214,17 @@ public class JsonMapper {
 			} else if (ignoredMembers.Contains(finfo.Name)) {
 				pdata.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
 			}
+			object[] aliasAttrs = finfo.GetCustomAttributes(typeof(JsonAlias), true);
+			if (aliasAttrs.Length > 0) {
+				JsonAlias aliasAttr = (JsonAlias)aliasAttrs[0];
+				pdata.Alias = aliasAttr.Alias;
+				if (aliasAttr.AcceptOriginal) {
+					data.Aliases.Add(aliasAttr.Alias, finfo.Name);
+				}
+			}
 			data.Properties.Add(finfo.Name, pdata);
 		}
-		objectMetadata[type] = data;
+		objectMetadata.Add(type, data);
 		return data;
 	}
 
@@ -227,7 +249,7 @@ public class JsonMapper {
 			if (!autoInclude) {
 				continue;
 			}
-			PropertyMetadata pdata = new PropertyMetadata ();
+			PropertyMetadata pdata = new PropertyMetadata();
 			pdata.Info = pinfo;
 			pdata.IsField = false;
 			object[] ignoreAttrs = pinfo.GetCustomAttributes(typeof(JsonIgnore), true);
@@ -256,7 +278,7 @@ public class JsonMapper {
 			}
 			props.Add(pdata);
 		}
-		typeProperties[type] = props;
+		typeProperties.Add(type, props);
 		return props;
 	}
 
@@ -308,6 +330,18 @@ public class JsonMapper {
 			return baseExportTable[valueType];
 		}
 		return null;
+	}
+
+	private static bool GetPropertyMetadata(ObjectMetadata tdata, string property, ref PropertyMetadata pdata) {
+		if (tdata.Properties.ContainsKey(property)) {
+			pdata = tdata.Properties[property];
+			return true;
+		}
+		if (tdata.Aliases.ContainsKey(property)) {
+			pdata = tdata.Properties[tdata.Aliases[property]];
+			return true;
+		}
+		return false;
 	}
 
 	private static object ReadValue(Type instType, JsonReader reader) {
@@ -433,8 +467,8 @@ public class JsonMapper {
 					}
 					property = (string)reader.Value;
 				}
-				PropertyMetadata pdata;
-				if (tdata.Properties.TryGetValue(property, out pdata)) {
+				PropertyMetadata pdata = default(PropertyMetadata);
+				if (GetPropertyMetadata(tdata, property, ref pdata)) {
 					// Don't deserialize a field or property that has a JsonIgnore attribute with deserialization usage.
 					if ((pdata.Ignore & JsonIgnoreWhen.Deserializing) > 0) {
 						ReadSkip(reader);
@@ -580,6 +614,15 @@ public class JsonMapper {
 		RegisterImporter(baseImportTable, typeof(long), typeof(ulong), delegate(object input) {
 			return Convert.ToUInt64((long)input);
 		});
+		RegisterImporter(baseImportTable, typeof(long), typeof(float), delegate(object input) {
+			return Convert.ToSingle((long)input);
+		});
+		RegisterImporter(baseImportTable, typeof(long), typeof(double), delegate(object input) {
+			return Convert.ToDouble((long)input);
+		});
+		RegisterImporter(baseImportTable, typeof(long), typeof(decimal), delegate(object input) {
+			return Convert.ToDecimal((long)input);
+		});
 		RegisterImporter(baseImportTable, typeof(double), typeof(float), delegate(object input) {
 			return Convert.ToSingle((double)input);
 		});
@@ -590,7 +633,7 @@ public class JsonMapper {
 			return Convert.ToChar((string)input);
 		});
 		RegisterImporter(baseImportTable, typeof(string), typeof(DateTime), delegate(object input) {
-			return Convert.ToDateTime((string)input);
+			return Convert.ToDateTime((string)input, datetimeFormat);
 		});
 	}
 
@@ -709,6 +752,7 @@ public class JsonMapper {
 		ExporterFunc exporter = GetExporter(objType);
 		if (exporter != null) {
 			exporter(obj, writer);
+			return;
 		}
 		// Last option, let's see if it's an enum
 		if (obj is Enum) {
@@ -734,7 +778,11 @@ public class JsonMapper {
 			}
 			if (pdata.IsField) {
 				FieldInfo info = (FieldInfo)pdata.Info;
-				writer.WritePropertyName(info.Name);
+				if (pdata.Alias != null) {
+					writer.WritePropertyName(pdata.Alias);
+				} else {
+					writer.WritePropertyName(info.Name);
+				}
 				object value = info.GetValue(obj);
 				if (writer.TypeHinting && value != null && info.FieldType != value.GetType()) {
 					// the object stored in the field might be a different type that what was declared, need type hinting
@@ -751,7 +799,11 @@ public class JsonMapper {
 			else {
 				PropertyInfo info = (PropertyInfo)pdata.Info;
 				if (info.CanRead) {
-					writer.WritePropertyName(info.Name);
+					if (pdata.Alias != null) {
+						writer.WritePropertyName(pdata.Alias);
+					} else {
+						writer.WritePropertyName(info.Name);
+					}
 					object value = info.GetValue(obj, null);
 					if (writer.TypeHinting && value != null && info.PropertyType != value.GetType()) {
 						// the object stored in the property might be a different type that what was declared, need type hinting

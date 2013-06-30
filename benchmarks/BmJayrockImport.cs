@@ -15,7 +15,7 @@ namespace LitJson.Benchmarks
                 JsonObject art = (JsonObject) JsonConvert.Import (
                     Common.PersonJson);
 
-                TextWriter.Null.Write (art["Name"]);
+                TextWriter.Null.Write(art["Name"]);
             }
         }
 
@@ -23,10 +23,10 @@ namespace LitJson.Benchmarks
         public static void JayrockConversionToObject ()
         {
             for (int i = 0; i < Common.Iterations; i++) {
-                Person art = (Person) JsonConvert.Import (typeof (Person),
+                Person art = (Person) JsonConvert.Import (typeof(Person),
                                                           Common.PersonJson);
 
-                TextWriter.Null.Write (art.ToString ());
+                TextWriter.Null.Write(art.ToString ());
             }
         }
     }

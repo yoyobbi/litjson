@@ -22,6 +22,9 @@
 	<ItemGroup>
 		<Reference Include="$(LibraryPath)/nunit.framework.dll"/>
 	</ItemGroup>
+	<ItemGroup>
+		<Resource Include="Test/json-example.txt"/>
+	</ItemGroup>
 	<Target Name="Clean">
 		<RemoveDir Directories="$(OutputPath)" />
 	</Target>
@@ -44,6 +47,7 @@
 		<MakeDir Directories="$(OutputPath)/Debug" Condition="!Exists('$(OutputPath)/Debug)')"/>
 		<Copy SourceFiles="$(LibraryPath)/nunit.framework.dll" DestinationFolder="$(OutputPath)/Debug"/>
 		<Csc Sources="@(Compile);@(Test)"
+			 Resources="@(Resource)"
 			 References="@(Reference)"
 			 TargetType="library"
 			 OutputAssembly="$(OutputPath)/Debug/$(AssemblyName).dll"
