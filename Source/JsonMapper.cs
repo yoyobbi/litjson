@@ -43,7 +43,6 @@ internal struct ArrayMetadata {
 
 internal struct ObjectMetadata {
 	public IDictionary<string, PropertyMetadata> Properties { get; set; }
-	public IDictionary<string, string> Aliases { get; set; }
 	public bool IsDictionary { get; set; }
 
 	private Type elemType;
@@ -92,15 +91,12 @@ public class JsonMapper {
 
 	private static readonly IDictionary<Type, ObjectMetadata> objectMetadata;
 
-	private static readonly IDictionary<Type, IList<PropertyMetadata>> typeProperties;
-
 	static JsonMapper() {
 		maxNestingDepth = 100;
 		datetimeFormat = DateTimeFormatInfo.InvariantInfo;
 
 		arrayMetadata = new Dictionary<Type, ArrayMetadata>();
 		objectMetadata = new Dictionary<Type, ObjectMetadata>();
-		typeProperties = new Dictionary<Type, IList<PropertyMetadata>>();
 		convOps = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
 
 		baseExportTable = new Dictionary<Type, ExporterFunc>();
@@ -150,13 +146,10 @@ public class JsonMapper {
 		}
 		data.Properties = new Dictionary<string, PropertyMetadata>();
 		HashSet<string> ignoredMembers = new HashSet<string>();
-		foreach (Attribute attr in type.GetCustomAttributes(true)) {
-			if (attr is JsonIgnoreMember) {
-				JsonIgnoreMember ignoredMemberAttr = (JsonIgnoreMember)attr;
-				ignoredMembers.UnionWith(ignoredMemberAttr.Members);
-			}
+		object[] memberAttrs = type.GetCustomAttributes(typeof(JsonIgnoreMember), true);
+		foreach (JsonIgnoreMember memberAttr in memberAttrs) {
+			ignoredMembers.UnionWith(memberAttr.Members);
 		}
-		data.Aliases = new Dictionary<string, string>();
 		// Get all kinds of declared properties
 		BindingFlags pflags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 		foreach (PropertyInfo pinfo in type.GetProperties(pflags)) {
@@ -174,7 +167,7 @@ public class JsonMapper {
 			bool autoInclude =
 				(pinfo.GetGetMethod() != null && pinfo.GetGetMethod().IsPublic) ||
 				(pinfo.GetSetMethod() != null && pinfo.GetSetMethod().IsPublic);
-			// If neither accessor is public and we don't have an [Include] attribute, skip it
+			// If neither accessor is public and we don't have a [JsonInclude] attribute, skip it
 			if (!autoInclude && pinfo.GetCustomAttributes(typeof(JsonInclude), true).Length == 0) {
 				continue;
 			}
@@ -190,12 +183,22 @@ public class JsonMapper {
 			object[] aliasAttrs = pinfo.GetCustomAttributes(typeof(JsonAlias), true);
 			if (aliasAttrs.Length > 0) {
 				JsonAlias aliasAttr = (JsonAlias)aliasAttrs[0];
+				if (aliasAttr.Alias == pinfo.Name) {
+					throw new JsonException(string.Format("Alias name '{0}' must be different from the property it represents for type '{1}'", pinfo.Name, type));
+				}
+				if (data.Properties.ContainsKey(aliasAttr.Alias)) {
+					throw new JsonException(string.Format("'{0}' already contains the property or alias name '{1}'", type, aliasAttr.Alias));
+				}
 				pdata.Alias = aliasAttr.Alias;
 				if (aliasAttr.AcceptOriginal) {
-					data.Aliases.Add(aliasAttr.Alias, pinfo.Name);
+					data.Properties.Add(pinfo.Name, pdata);
 				}
 			}
-			data.Properties.Add(pinfo.Name, pdata);
+			if (pdata.Alias != null) {
+				data.Properties.Add(pdata.Alias, pdata);
+			} else {
+				data.Properties.Add(pinfo.Name, pdata);
+			}
 		}
 		// Get all kinds of declared fields
 		BindingFlags fflags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
@@ -217,69 +220,25 @@ public class JsonMapper {
 			object[] aliasAttrs = finfo.GetCustomAttributes(typeof(JsonAlias), true);
 			if (aliasAttrs.Length > 0) {
 				JsonAlias aliasAttr = (JsonAlias)aliasAttrs[0];
+				if (aliasAttr.Alias == finfo.Name) {
+					throw new JsonException(string.Format("Alias name '{0}' must be different from the field it represents for type '{1}'", finfo.Name, type));
+				}
+				if (data.Properties.ContainsKey(aliasAttr.Alias)) {
+					throw new JsonException(string.Format("'{0}' already contains the field or alias name '{1}'", type, aliasAttr.Alias));
+				}
 				pdata.Alias = aliasAttr.Alias;
 				if (aliasAttr.AcceptOriginal) {
-					data.Aliases.Add(aliasAttr.Alias, finfo.Name);
+					data.Properties.Add(finfo.Name, pdata);
 				}
 			}
-			data.Properties.Add(finfo.Name, pdata);
+			if (pdata.Alias != null) {
+				data.Properties.Add(pdata.Alias, pdata);
+			} else {
+				data.Properties.Add(finfo.Name, pdata);
+			}
 		}
 		objectMetadata.Add(type, data);
 		return data;
-	}
-
-	private static IList<PropertyMetadata> AddTypeProperties(Type type) {
-		if (typeProperties.ContainsKey(type)) {
-			return typeProperties[type];
-		}
-		HashSet<string> ignoredMembers = new HashSet<string>();
-		IList<PropertyMetadata> props = new List<PropertyMetadata>();
-		// Get all kinds of properties
-		BindingFlags pflags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-		foreach (PropertyInfo pinfo in type.GetProperties(pflags)) {
-			// Ignore class indexers
-			if (pinfo.Name == "Item") {
-				continue;
-			}
-			// Include properties automatically that have at least one public accessor
-			bool autoInclude =
-				(pinfo.GetGetMethod() != null && pinfo.GetGetMethod().IsPublic) ||
-				(pinfo.GetSetMethod() != null && pinfo.GetSetMethod().IsPublic);
-			// If neither accessor is public and we don't have an [Include] attribute, skip it
-			if (!autoInclude) {
-				continue;
-			}
-			PropertyMetadata pdata = new PropertyMetadata();
-			pdata.Info = pinfo;
-			pdata.IsField = false;
-			object[] ignoreAttrs = pinfo.GetCustomAttributes(typeof(JsonIgnore), true);
-			if (ignoreAttrs.Length > 0) {
-				pdata.Ignore = ((JsonIgnore)ignoreAttrs[0]).Usage;
-			} else if (ignoredMembers.Contains(pinfo.Name)) {
-				pdata.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
-			}
-			props.Add(pdata);
-		}
-		// Get all kinds of fields
-		BindingFlags fflags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-		foreach (FieldInfo finfo in type.GetFields(fflags)) {
-			// If the field isn't public and doesn't have a [JsonInclude] attribute, skip it
-			if (!finfo.IsPublic && finfo.GetCustomAttributes(typeof(JsonInclude), true).Length == 0) {
-				continue;
-			}
-			PropertyMetadata pdata = new PropertyMetadata();
-			pdata.Info = finfo;
-			pdata.IsField = true;
-			object[] ignoreAttrs = finfo.GetCustomAttributes(typeof(JsonIgnore), true);
-			if (ignoreAttrs.Length > 0) {
-				pdata.Ignore = ((JsonIgnore)ignoreAttrs[0]).Usage;
-			} else if (ignoredMembers.Contains(finfo.Name)) {
-				pdata.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
-			}
-			props.Add(pdata);
-		}
-		typeProperties.Add(type, props);
-		return props;
 	}
 
 	private static object CreateInstance(Type type) {
@@ -330,18 +289,6 @@ public class JsonMapper {
 			return baseExportTable[valueType];
 		}
 		return null;
-	}
-
-	private static bool GetPropertyMetadata(ObjectMetadata tdata, string property, ref PropertyMetadata pdata) {
-		if (tdata.Properties.ContainsKey(property)) {
-			pdata = tdata.Properties[property];
-			return true;
-		}
-		if (tdata.Aliases.ContainsKey(property)) {
-			pdata = tdata.Properties[tdata.Aliases[property]];
-			return true;
-		}
-		return false;
 	}
 
 	private static object ReadValue(Type instType, JsonReader reader) {
@@ -467,8 +414,8 @@ public class JsonMapper {
 					}
 					property = (string)reader.Value;
 				}
-				PropertyMetadata pdata = default(PropertyMetadata);
-				if (GetPropertyMetadata(tdata, property, ref pdata)) {
+				PropertyMetadata pdata;
+				if (tdata.Properties.TryGetValue(property, out pdata)) {
 					// Don't deserialize a field or property that has a JsonIgnore attribute with deserialization usage.
 					if ((pdata.Ignore & JsonIgnoreWhen.Deserializing) > 0) {
 						ReadSkip(reader);
@@ -767,11 +714,15 @@ public class JsonMapper {
 			}
 			return;
 		}
-		// Okay, so it looks like the input should be exported as an object
-		AddTypeProperties(objType);
-		IList<PropertyMetadata> props = typeProperties[objType];
+		// Okay, it looks like the input should be exported as an object
+		ObjectMetadata tdata = AddObjectMetadata(objType);
 		writer.WriteObjectStart();
-		foreach (PropertyMetadata pdata in props) {
+		foreach (string property in tdata.Properties.Keys) {
+			PropertyMetadata pdata = tdata.Properties[property];
+			// Don't serialize soft aliases (which get added to ObjectMetadata.Properties twice).
+			if (pdata.Alias != null && property != pdata.Info.Name && tdata.Properties.ContainsKey(pdata.Info.Name)) {
+				continue;
+			}
 			// Don't serialize a field or property with the JsonIgnore attribute with serialization usage
 			if ((pdata.Ignore & JsonIgnoreWhen.Serializing) > 0) {
 				continue;

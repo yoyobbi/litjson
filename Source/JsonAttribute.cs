@@ -43,10 +43,10 @@ public class JsonInclude : Attribute {
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class JsonAlias : Attribute {
-	public string Alias { get; set; }
-	public bool AcceptOriginal { get; set; }
+	public string Alias { get; private set; }
+	public bool AcceptOriginal { get; private set; }
 
-	public JsonAlias(string aliasName, bool acceptOriginalName = true) {
+	public JsonAlias(string aliasName, bool acceptOriginalName = false) {
 		Alias = aliasName;
 		AcceptOriginal = acceptOriginalName;
 	}
