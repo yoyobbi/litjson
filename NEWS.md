@@ -1,3 +1,15 @@
+LitJSON 1.1.1 (UnityLitJson)
+=============
+
+Merged [HyperHippo's](https://github.com/HyperHippo/litjson) v2 branch onto the main branch.
+Added some Unity3D specific type bindings & platform compatibility patches.
+
+*Note about building*
+I've left the LitJson csproj intact so you can run the tests. When your 
+ready to use the library in Unity3D I recommend you import the uncompleted 
+source, there are some #if directives in UnityPlatform.cs that help make the
+library work on WinRT (and possibly other platforms in the future).
+
 LitJSON 1.1.0
 =============
 
