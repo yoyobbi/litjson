@@ -299,7 +299,7 @@ public class JsonMapper {
 		Type underlyingType = Nullable.GetUnderlyingType(instType);
 		Type valueType = underlyingType ?? instType;
 		if (reader.Token == JsonToken.Null) {
-			if (instType.IsClass || underlyingType != null) {
+			if (instType.IsClass() || underlyingType != null) {
 				return null;
 			}
 			throw new JsonException(string.Format("Can't assign null to an instance of type {0}", instType));
@@ -319,7 +319,7 @@ public class JsonMapper {
 				return importer(reader.Value);
 			}
 			// Maybe it's an enum
-			if (valueType.IsEnum) {
+			if (valueType.IsEnum()) {
 				return Enum.ToObject(valueType, reader.Value);
 			}
 			// Try using an implicit conversion operator
@@ -348,7 +348,8 @@ public class JsonMapper {
 				list = (IList)CreateInstance(instType);
 				elemType = tdata.ElementType;
 			} else {
-				list = new ArrayList();
+				//list = new ArrayList();
+				list = new List<object>();
 				elemType = instType.GetElementType();
 			}
 			while (true) {
