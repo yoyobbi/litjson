@@ -15,7 +15,7 @@ namespace LitJson.Benchmarks
                 StringReader sr = new StringReader (Common.JsonNumbers);
                 JsonReader reader = new JsonTextReader (sr);
 
-                while (reader.Read ());
+                while (reader.Read());
             }
         }
 
@@ -26,7 +26,7 @@ namespace LitJson.Benchmarks
                 StringReader sr = new StringReader (Common.JsonStrings);
                 JsonReader reader = new JsonTextReader (sr);
 
-                while (reader.Read ());
+                while (reader.Read());
             }
         }
 
@@ -40,7 +40,7 @@ namespace LitJson.Benchmarks
 
                 JsonReader reader = new JsonTextReader (sr);
 
-                while (reader.Read ()) {
+                while (reader.Read()) {
                     if (reader.TokenClass == JsonTokenClass.Member &&
                         reader.Text == "FirstProperty") {
                         found = true;
@@ -63,7 +63,7 @@ namespace LitJson.Benchmarks
 
                 JsonReader reader = new JsonTextReader (sr);
 
-                while (reader.Read ()) {
+                while (reader.Read()) {
                     if (reader.TokenClass == JsonTokenClass.Member &&
                         reader.Text == "LastProperty") {
                         found = true;

@@ -24,8 +24,8 @@ namespace LitJson.Benchmarks
 
                 int count = 0;
 
-                while (reader.Read ()) {
-                    out_stream.Write ("Token: {0}", reader.TokenType);
+                while (reader.Read()) {
+                    out_stream.Write("Token: {0}", reader.TokenType);
 
                     if (reader.Value != null)
                         out_stream.WriteLine (" Value: {0}", reader.Value);
@@ -45,7 +45,7 @@ namespace LitJson.Benchmarks
                 out_stream.WriteLine (
                     "\n*** Writing with Newtonsoft.Json.JsonWriter");
 
-                JsonWriter writer = new JsonWriter (out_stream);
+                JsonWriter writer = new JsonWriter(out_stream);
                 int n = Common.SampleObject.Length;
                 for (int i = 0; i < n; i += 2) {
                     switch ((char) Common.SampleObject[i]) {
@@ -66,7 +66,7 @@ namespace LitJson.Benchmarks
                         break;
 
                     case 'P':
-                        writer.WritePropertyName (
+                        writer.WritePropertyName(
                             (string) Common.SampleObject[i + 1]);
                         break;
 
@@ -103,16 +103,16 @@ namespace LitJson.Benchmarks
 
                 Person art = (Person)
                     JavaScriptConvert.DeserializeObject (
-                        Common.PersonJson, typeof (Person));
+                        Common.PersonJson, typeof(Person));
 
-                out_stream.Write (art.ToString ());
+                out_stream.Write(art.ToString ());
 
 
                 out_stream.WriteLine (
                     "\n\n*** Object exported with " +
                     "Newtonsoft.Json.JavaScriptConvert\n");
 
-                out_stream.Write (JavaScriptConvert.SerializeObject (
+                out_stream.Write(JavaScriptConvert.SerializeObject (
                         Common.SamplePerson));
 
 
@@ -122,16 +122,16 @@ namespace LitJson.Benchmarks
 
                 JavaScriptObject person = (JavaScriptObject)
                     JavaScriptConvert.DeserializeObject (
-                        Common.PersonJson, typeof (JavaScriptObject));
+                        Common.PersonJson, typeof(JavaScriptObject));
 
-                out_stream.Write (JavaScriptConvert.SerializeObject (person));
+                out_stream.Write(JavaScriptConvert.SerializeObject (person));
 
 
                 out_stream.WriteLine (
                     "\n\n*** Hashtable exported with " +
                     "Newtonsoft.Json.JavaScriptConvert\n");
 
-                out_stream.Write (JavaScriptConvert.SerializeObject (
+                out_stream.Write(JavaScriptConvert.SerializeObject (
                         Common.HashtablePerson));
 
                 out_stream.Close ();

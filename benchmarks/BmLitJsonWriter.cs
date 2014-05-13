@@ -13,17 +13,17 @@ namespace LitJson.Benchmarks
         {
             for (int i = 0; i < Common.Iterations; i++) {
                 StringBuilder output = new StringBuilder ();
-                JsonWriter writer = new JsonWriter (new StringWriter (output));
+                JsonWriter writer = new JsonWriter(new StringWriter (output));
 
-                writer.WriteArrayStart ();
+                writer.WriteArrayStart();
 
                 foreach (int n in Common.SampleInts)
-                    writer.Write (n);
+                    writer.Write(n);
 
                 foreach (double n in Common.SampleDoubles)
-                    writer.Write (n);
+                    writer.Write(n);
 
-                writer.WriteArrayEnd ();
+                writer.WriteArrayEnd();
             }
         }
 
@@ -32,54 +32,54 @@ namespace LitJson.Benchmarks
         {
             for (int j = 0; j < Common.Iterations; j++) {
                 StringBuilder output = new StringBuilder ();
-                JsonWriter writer = new JsonWriter (new StringWriter (output));
+                JsonWriter writer = new JsonWriter(new StringWriter (output));
 
                 int n = Common.SampleObject.Length;
                 for (int i = 0; i < n; i += 2) {
                     switch ((char) Common.SampleObject[i]) {
                     case '{':
-                        writer.WriteObjectStart ();
+                        writer.WriteObjectStart();
                         break;
 
                     case '}':
-                        writer.WriteObjectEnd ();
+                        writer.WriteObjectEnd();
                         break;
 
                     case '[':
-                        writer.WriteArrayStart ();
+                        writer.WriteArrayStart();
                         break;
 
                     case ']':
-                        writer.WriteArrayEnd ();
+                        writer.WriteArrayEnd();
                         break;
 
                     case 'P':
-                        writer.WritePropertyName (
+                        writer.WritePropertyName(
                             (string) Common.SampleObject[i + 1]);
                         break;
 
                     case 'I':
-                        writer.Write (
+                        writer.Write(
                             (int) Common.SampleObject[i + 1]);
                         break;
 
                     case 'D':
-                        writer.Write (
+                        writer.Write(
                             (double) Common.SampleObject[i + 1]);
                         break;
 
                     case 'S':
-                        writer.Write (
+                        writer.Write(
                             (string) Common.SampleObject[i + 1]);
                         break;
 
                     case 'B':
-                        writer.Write (
+                        writer.Write(
                             (bool) Common.SampleObject[i + 1]);
                         break;
 
                     case 'N':
-                        writer.Write (null);
+                        writer.Write(null);
                         break;
                     }
                 }

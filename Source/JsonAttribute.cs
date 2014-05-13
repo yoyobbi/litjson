@@ -27,18 +27,30 @@ public class JsonIgnore : Attribute {
 public class JsonIgnoreMember : Attribute {
 	public HashSet<string> Members { get; private set; }
 
-	public JsonIgnoreMember(IEnumerable<string> members) {
-		Members = new HashSet<string>(members);
+	public JsonIgnoreMember(params string[] members) : this((ICollection<string>)members) {
 	}
 
-	public JsonIgnoreMember(params string[] members) {
+	public JsonIgnoreMember(ICollection<string> members) {
 		Members = new HashSet<string>(members);
 	}
 }
 
-// TODO: replace IncludeAttribute with this
+/// <summary>
+/// Attribute to be placed on non-public fields or properties to include them in serialization.
+/// </summary>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class JsonInclude : Attribute {
+}
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class JsonAlias : Attribute {
+	public string Alias { get; private set; }
+	public bool AcceptOriginal { get; private set; }
+
+	public JsonAlias(string aliasName, bool acceptOriginalName = false) {
+		Alias = aliasName;
+		AcceptOriginal = acceptOriginalName;
+	}
 }
 
 }
