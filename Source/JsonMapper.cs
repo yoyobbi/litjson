@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Linq;
 
 namespace LitJson {
 
@@ -168,19 +169,19 @@ public class JsonMapper {
 				(pinfo.GetGetMethod() != null && pinfo.GetGetMethod().IsPublic) ||
 				(pinfo.GetSetMethod() != null && pinfo.GetSetMethod().IsPublic);
 			// If neither accessor is public and we don't have a [JsonInclude] attribute, skip it
-			if (!autoInclude && pinfo.GetCustomAttributes(typeof(JsonInclude), true).Length == 0) {
+			if (!autoInclude && pinfo.GetCustomAttributes(typeof(JsonInclude), true).Count() == 0) {
 				continue;
 			}
 			PropertyMetadata pdata = new PropertyMetadata();
 			pdata.Info = pinfo;
 			pdata.Type = pinfo.PropertyType;
-			object[] ignoreAttrs = pinfo.GetCustomAttributes(typeof(JsonIgnore), true);
+			object[] ignoreAttrs = pinfo.GetCustomAttributes(typeof(JsonIgnore), true).ToArray();
 			if (ignoreAttrs.Length > 0) {
 				pdata.Ignore = ((JsonIgnore)ignoreAttrs[0]).Usage;
 			} else if (ignoredMembers.Contains(pinfo.Name)) {
 				pdata.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
 			}
-			object[] aliasAttrs = pinfo.GetCustomAttributes(typeof(JsonAlias), true);
+			object[] aliasAttrs = pinfo.GetCustomAttributes(typeof(JsonAlias), true).ToArray();
 			if (aliasAttrs.Length > 0) {
 				JsonAlias aliasAttr = (JsonAlias)aliasAttrs[0];
 				if (aliasAttr.Alias == pinfo.Name) {
@@ -204,20 +205,20 @@ public class JsonMapper {
 		BindingFlags fflags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 		foreach (FieldInfo finfo in type.GetFields(fflags)) {
 			// If the field isn't public and doesn't have an [Include] attribute, skip it
-			if (!finfo.IsPublic && finfo.GetCustomAttributes(typeof(JsonInclude), true).Length == 0) {
+			if (!finfo.IsPublic && finfo.GetCustomAttributes(typeof(JsonInclude), true).Count() == 0) {
 				continue;
 			}
 			PropertyMetadata pdata = new PropertyMetadata();
 			pdata.Info = finfo;
 			pdata.IsField = true;
 			pdata.Type = finfo.FieldType;
-			object[] ignoreAttrs = finfo.GetCustomAttributes(typeof(JsonIgnore), true);
+			object[] ignoreAttrs = finfo.GetCustomAttributes(typeof(JsonIgnore), true).ToArray();
 			if (ignoreAttrs.Length > 0) {
 				pdata.Ignore = ((JsonIgnore)ignoreAttrs[0]).Usage;
 			} else if (ignoredMembers.Contains(finfo.Name)) {
 				pdata.Ignore = JsonIgnoreWhen.Serializing | JsonIgnoreWhen.Deserializing;
 			}
-			object[] aliasAttrs = finfo.GetCustomAttributes(typeof(JsonAlias), true);
+			object[] aliasAttrs = finfo.GetCustomAttributes(typeof(JsonAlias), true).ToArray();
 			if (aliasAttrs.Length > 0) {
 				JsonAlias aliasAttr = (JsonAlias)aliasAttrs[0];
 				if (aliasAttr.Alias == finfo.Name) {
@@ -248,7 +249,7 @@ public class JsonMapper {
 		}
 		// construct the new instance with the default constructor (if present), handles structs as well
 		BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-		ConstructorInfo constructor = type.GetConstructor(flags, null, Type.EmptyTypes, null);
+		ConstructorInfo constructor = type.GetConstructor(flags, null, new Type[0], null);
 		if (constructor != null) {
 			constructor.Invoke(null);   
 		}
