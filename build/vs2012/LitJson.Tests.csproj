@@ -42,10 +42,13 @@
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>$(NUnitBin)\nunit.exe</StartProgram>
-    <StartArguments>/run $(OutputPath)$(AssemblyName).dll</StartArguments>
+    <StartArguments>/run "$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll"</StartArguments>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(LitJsonRoot)\test\**\*.cs" />
+    <EmbeddedResource Include="$(LitJsonRoot)\test\json-example.txt">
+      <LogicalName>json-example.txt</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
