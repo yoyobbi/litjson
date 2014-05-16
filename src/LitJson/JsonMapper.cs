@@ -633,15 +633,13 @@ namespace LitJson
             RegisterImporter (base_importers_table, typeof (int),
                               typeof (uint), importer);
 
-            importer = delegate(object input)
-            {
-                return Convert.ToInt64((int)input);
+            importer = delegate (object input) {
+                return Convert.ToInt64 ((int)input);
             };
             RegisterImporter(base_importers_table, typeof(int),
                               typeof(long), importer);
 
-            importer = delegate(object input)
-            {
+            importer = delegate (object input) {
                 return Convert.ToSingle ((int) input);
             };
             RegisterImporter (base_importers_table, typeof (int),
@@ -653,19 +651,17 @@ namespace LitJson
             RegisterImporter (base_importers_table, typeof (int),
                               typeof (double), importer);
 
-            importer = delegate(object input)
-            {
-                return Convert.ToDecimal((double)input);
+            importer = delegate (object input) {
+                return Convert.ToDecimal ((double)input);
             };
-            RegisterImporter(base_importers_table, typeof(double),
+            RegisterImporter (base_importers_table, typeof(double),
                               typeof(decimal), importer);
 
-            importer = delegate(object input)
-            {
-                return Convert.ToDecimal((float)input);
+            importer = delegate (object input) {
+                return Convert.ToSingle ((double)input);
             };
-            RegisterImporter(base_importers_table, typeof(float),
-                              typeof(decimal), importer);
+            RegisterImporter (base_importers_table, typeof(double),
+                              typeof(float), importer);
 
 
             importer = delegate (object input) {
@@ -674,15 +670,13 @@ namespace LitJson
             RegisterImporter (base_importers_table, typeof (long),
                               typeof (uint), importer);
 
-            importer = delegate(object input)
-            {
-                return Convert.ToUInt64((long)input);
+            importer = delegate (object input) {
+                return Convert.ToUInt64 ((long)input);
             };
             RegisterImporter(base_importers_table, typeof(long),
                               typeof(ulong), importer);
 
-            importer = delegate(object input)
-            {
+            importer = delegate (object input) {
                 return Convert.ToChar ((string) input);
             };
             RegisterImporter (base_importers_table, typeof (string),
@@ -735,13 +729,13 @@ namespace LitJson
             }
 
             if (obj is Single) {
-                writer.Write ((double) obj);
+                writer.Write ((float)obj);
                 return;
             }
 
             if (obj is Double)
             {
-                writer.Write((double)obj);
+                writer.Write ((double)obj);
                 return;
             }
 
