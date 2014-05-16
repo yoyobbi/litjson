@@ -290,9 +290,16 @@ namespace LitJson
                 return;
             }
 
-            // Shouldn't happen, but just in case, return something
-            token = JsonToken.Int;
-            token_value = 0;
+            ulong n_uint64;
+            if (UInt64.TryParse(number, out n_uint64))
+            {
+                token = JsonToken.Long;
+                token_value = n_uint64;
+
+                return;
+            }
+
+            throw new JsonException("Input couldn't be parsed as a number");
         }
 
         private void ProcessSymbol ()
