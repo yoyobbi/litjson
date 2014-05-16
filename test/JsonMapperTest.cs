@@ -863,5 +863,56 @@ namespace LitJson.Test
 
             Assert.AreEqual ("{}", json, "A2");
         }
+
+        [Test]
+        public void RoundTripInt16()
+        {
+            RoundTrip<Int16>(new Int16[] { 0, 1, Int16.MaxValue, Int16.MinValue });
+        }
+
+        [Test]
+        public void RoundTripInt32()
+        {
+            RoundTrip<Int32>(new Int32[] { 0, 1, Int16.MaxValue, Int16.MinValue, Int32.MaxValue, Int32.MinValue });
+        }
+
+
+        [Test]
+        public void RoundTripInt64()
+        {
+            RoundTrip<Int64>(new Int64[] { 0, 1, Int16.MaxValue, Int16.MinValue, Int32.MaxValue, Int32.MinValue, Int64.MaxValue, Int64.MinValue });
+        }
+
+        [Test]
+        public void RoundTripUInt16()
+        {
+            RoundTrip<UInt16>(new UInt16[] { 0, 1, UInt16.MaxValue, UInt16.MinValue });
+        }
+
+        [Test]
+        public void RoundTripUInt32()
+        {
+            RoundTrip<UInt32>(new UInt32[] { 0, 1, UInt16.MaxValue, UInt16.MinValue, UInt32.MaxValue, UInt32.MinValue });
+        }
+
+
+        [Test]
+        public void RoundTripUInt64()
+        {
+            RoundTrip<UInt64>(new UInt64[] { 0, 1, UInt16.MaxValue, UInt16.MinValue, UInt32.MaxValue, UInt32.MinValue, UInt64.MaxValue, UInt64.MinValue });
+        }
+
+        private void RoundTrip<T>(T[] before)
+        {
+            string json = JsonMapper.ToJson(before);
+            Console.WriteLine(json);
+            T[] after = JsonMapper.ToObject<T[]>(json);
+
+            Assert.AreEqual(before.Length, after.Length);
+            for (int i = 0; i < before.Length; ++i)
+            {
+                Assert.AreEqual(before[i], after[i]);
+            }
+        }
     }
 }
