@@ -902,6 +902,24 @@ namespace LitJson.Test
             RoundTrip<UInt64>(new UInt64[] { 0, 1, UInt16.MaxValue, UInt16.MinValue, UInt32.MaxValue, UInt32.MinValue, UInt64.MaxValue, UInt64.MinValue });
         }
 
+        [Test]
+        public void RoundTripFloatSingle()
+        {
+            RoundTrip<Single>(new Single[] { 0.0f, 1.0f, Single.MaxValue, Single.MinValue });
+        }
+
+        [Test]
+        public void RoundTripFloatDouble()
+        {
+            RoundTrip<Double>(new Double[] { 0.0, 1.0, Single.MaxValue, Single.MinValue, Double.MaxValue, Double.MinValue });
+        }
+
+        [Test]
+        public void RoundTripFloatDecimal()
+        {
+            RoundTrip<Decimal>(new Decimal[] { 0.0M, 1.0M, Decimal.MaxValue, Decimal.MinValue });
+        }
+
         private void RoundTrip<T>(T[] before)
         {
             string json = JsonMapper.ToJson(before);

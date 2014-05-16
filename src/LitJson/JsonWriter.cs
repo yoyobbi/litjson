@@ -312,7 +312,12 @@ namespace LitJson
             DoValidation (Condition.Value);
             PutNewline ();
 
-            Put (Convert.ToString (number, number_format));
+            string str = Convert.ToString(number, number_format);
+            Put(str);
+
+            if (str.IndexOf('.') == -1 &&
+                str.IndexOf('E') == -1)
+                writer.Write(".0");
 
             context.ExpectingValue = false;
         }
