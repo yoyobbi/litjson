@@ -299,6 +299,15 @@ namespace LitJson
                 return;
             }
 
+            decimal n_decimal;
+            if (Decimal.TryParse (number, out n_decimal))
+            {
+                token = JsonToken.Double;
+                token_value = n_decimal;
+
+                return;
+            }
+
             token = JsonToken.Int;
             token_value = 0;
 
