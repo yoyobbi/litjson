@@ -865,62 +865,69 @@ namespace LitJson.Test
         }
 
         [Test]
+        public void RoundTripInt8()
+        {
+            RoundTrip<Byte>(0, 1, Byte.MaxValue, Byte.MinValue);
+        }
+
+        [Test]
         public void RoundTripInt16()
         {
-            RoundTrip<Int16>(new Int16[] { 0, 1, Int16.MaxValue, Int16.MinValue });
+            RoundTrip<Int16>(0, 1, Int16.MaxValue, Int16.MinValue);
         }
 
         [Test]
         public void RoundTripInt32()
         {
-            RoundTrip<Int32>(new Int32[] { 0, 1, Int16.MaxValue, Int16.MinValue, Int32.MaxValue, Int32.MinValue });
+            RoundTrip<Int32>(0, 1, Int16.MaxValue, Int16.MinValue, Int32.MaxValue, Int32.MinValue);
         }
 
 
         [Test]
         public void RoundTripInt64()
         {
-            RoundTrip<Int64>(new Int64[] { 0, 1, Int16.MaxValue, Int16.MinValue, Int32.MaxValue, Int32.MinValue, Int64.MaxValue, Int64.MinValue });
+            RoundTrip<Int64>(0, 1, Int16.MaxValue, Int16.MinValue, Int32.MaxValue, Int32.MinValue, Int64.MaxValue, Int64.MinValue);
         }
 
         [Test]
         public void RoundTripUInt16()
         {
-            RoundTrip<UInt16>(new UInt16[] { 0, 1, UInt16.MaxValue, UInt16.MinValue });
+            RoundTrip<UInt16>(0, 1, UInt16.MaxValue, UInt16.MinValue);
         }
 
         [Test]
         public void RoundTripUInt32()
         {
-            RoundTrip<UInt32>(new UInt32[] { 0, 1, UInt16.MaxValue, UInt16.MinValue, UInt32.MaxValue, UInt32.MinValue });
+            RoundTrip<UInt32>(0, 1, UInt16.MaxValue, UInt16.MinValue, UInt32.MaxValue, UInt32.MinValue);
         }
 
 
         [Test]
         public void RoundTripUInt64()
         {
-            RoundTrip<UInt64>(new UInt64[] { 0, 1, UInt16.MaxValue, UInt16.MinValue, UInt32.MaxValue, UInt32.MinValue, UInt64.MaxValue, UInt64.MinValue });
+            RoundTrip<UInt64>(0, 1, UInt16.MaxValue, UInt16.MinValue, UInt32.MaxValue, UInt32.MinValue, UInt64.MaxValue, UInt64.MinValue);
         }
 
         [Test]
         public void RoundTripFloatSingle()
         {
-            RoundTrip<Single>(new Single[] { 0.0f, 1.0f, Single.MaxValue, Single.MinValue });
+            //RoundTrip<Single>(0.0f, 1.0f, 0.1f, 0.123456789f, 123456789.123456789f, Single.Epsilon, Single.MinValue, Single.MaxValue);
+            RoundTrip<Single>(0.0f);
         }
 
         [Test]
         public void RoundTripFloatDouble()
         {
-            RoundTrip<Double>(new Double[] { 0.0, 1.0, Single.MaxValue, Single.MinValue, Double.MaxValue, Double.MinValue });
+            RoundTrip<Double>(0.0, 1.0, 0.1, 0.123456789, 123456789.123456789, Single.Epsilon, Single.MinValue, Single.MaxValue, Double.Epsilon, Double.MinValue, Double.MaxValue);
         }
 
         [Test]
         public void RoundTripFloatDecimal()
         {
-            RoundTrip<Decimal>(new Decimal[] { 0.0M, 1.0M, Decimal.MaxValue, Decimal.MinValue });
+            RoundTrip<Decimal>(0.0M, 1.0M, 0.1M, 0.123456789M, 123456789.123456789M, Decimal.MaxValue, Decimal.MinValue);
         }
 
-        private void RoundTrip<T>(T[] before)
+        private void RoundTrip<T>(params T[] before)
         {
             string json = JsonMapper.ToJson(before);
             Console.WriteLine(json);

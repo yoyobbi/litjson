@@ -299,6 +299,9 @@ namespace LitJson
                 return;
             }
 
+            token = JsonToken.Int;
+            token_value = 0;
+
             throw new JsonException("Input couldn't be parsed as a number");
         }
 
