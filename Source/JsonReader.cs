@@ -245,6 +245,13 @@ public class JsonReader {
 			Value = unsignednatural;
 			return;
 		}
+		decimal decimalreal;
+		if (Decimal.TryParse(number, out decimalreal)) {
+			Token = JsonToken.Real;
+			Value = decimalreal;
+
+			return;
+		}
 		// Shouldn't happen, but just in case, return something
 		Token = JsonToken.Natural;
 		Value = 0;

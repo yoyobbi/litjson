@@ -257,11 +257,7 @@ public class JsonWriter {
 	public void Write(decimal number) {
 		DoValidation(Condition.Value);
 		PutNewline();
-		string str = Convert.ToString(number, numberFormat);
-		Put(str);
-		if (str.IndexOf('.') == -1 && str.IndexOf('E') == -1) {
-			TextWriter.Write(".0");
-		}
+		Put(Convert.ToString(number, numberFormat));
 		context.ExpectingValue = false;
 	}
 
