@@ -534,13 +534,13 @@ public class JsonMapper {
 			writer.Write(Convert.ToInt64((uint)obj));
 		};
 		baseExportTable[typeof(ulong)] = delegate(object obj, JsonWriter writer) {
-			writer.Write(Convert.ToInt64((ulong)obj));
+			writer.Write(Convert.ToUInt64((ulong)obj));
 		};
 		baseExportTable[typeof(float)] = delegate(object obj, JsonWriter writer) {
 			writer.Write(Convert.ToDouble((float)obj));
 		};
 		baseExportTable[typeof(decimal)] = delegate(object obj, JsonWriter writer) {
-			writer.Write(Convert.ToDouble((decimal)obj));
+			writer.Write(Convert.ToDecimal((decimal)obj));
 		};
 		baseExportTable[typeof(DateTime)] = delegate(object obj, JsonWriter writer) {
 			writer.Write(Convert.ToString((DateTime)obj, datetimeFormat));
