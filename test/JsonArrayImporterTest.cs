@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace LitJson.Test {
 
 class ArrayImportRoot {
-	public ArrayImport test;
+	public ArrayImport test = null;
 }
 
 class ArrayImport {

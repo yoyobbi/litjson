@@ -198,6 +198,9 @@ public class JsonMapper {
 			if (pdata.Alias != null) {
 				data.Properties.Add(pdata.Alias, pdata);
 			} else {
+				if (data.Properties.ContainsKey(pinfo.Name)) {
+					throw new JsonException(string.Format("'{0}' already contains the property or alias name '{1}'", type, pinfo.Name));
+				}
 				data.Properties.Add(pinfo.Name, pdata);
 			}
 		}
@@ -235,6 +238,9 @@ public class JsonMapper {
 			if (pdata.Alias != null) {
 				data.Properties.Add(pdata.Alias, pdata);
 			} else {
+				if (data.Properties.ContainsKey(finfo.Name)) {
+					throw new JsonException(string.Format("'{0}' already contains the field or alias name '{1}'", type, finfo.Name));
+				}
 				data.Properties.Add(finfo.Name, pdata);
 			}
 		}
@@ -300,7 +306,7 @@ public class JsonMapper {
 		Type underlyingType = Nullable.GetUnderlyingType(instType);
 		Type valueType = underlyingType ?? instType;
 		if (reader.Token == JsonToken.Null) {
-			if (instType.IsClass() || underlyingType != null) {
+			if (instType.IsClass || underlyingType != null) {
 				return null;
 			}
 			throw new JsonException(string.Format("Can't assign null to an instance of type {0}", instType));
@@ -320,7 +326,7 @@ public class JsonMapper {
 				return importer(reader.Value);
 			}
 			// Maybe it's an enum
-			if (valueType.IsEnum()) {
+			if (valueType.IsEnum) {
 				return Enum.ToObject(valueType, reader.Value);
 			}
 			// Try using an implicit conversion operator

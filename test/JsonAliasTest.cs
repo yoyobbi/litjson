@@ -18,20 +18,33 @@ class TestHardAlias {
 
 class TestDuplicateAlias1 {
 	[JsonAlias("dup")]
-	public int field1;
+	public int field1 = 0;
 	[JsonAlias("dup")]
-	public int field2;
+	public int field2 = 0;
 }
 
 class TestDuplicateAlias2 {
 	[JsonAlias("dup")]
-	public int field;
-	public int dup;
+	public int field = 0;
+	public int dup = 0;
 }
 
 class TestDuplicateAlias3 {
 	[JsonAlias("dup")]
-	public int dup;
+	public int dup = 0;
+}
+
+class TestDuplicateAlias4 {
+	[JsonAlias("dup")]
+	public int property1 { get; set; }
+	[JsonAlias("dup")]
+	public int property2 { get; set; }
+}
+
+class TestDuplicateAlias5 {
+	[JsonAlias("dup")]
+	public int property { get; set; }
+	public int dup { get; set; }
 }
 
 [TestFixture]
@@ -103,6 +116,16 @@ public sealed class JsonAliasTest {
 	[Test, ExpectedException("LitJson.JsonException")]
 	public void test_alias_duplicate_3() {
 		JsonMapper.ToJson(new TestDuplicateAlias3());
+	}
+
+	[Test, ExpectedException("LitJson.JsonException")]
+	public void test_alias_duplicate_4() {
+		JsonMapper.ToJson(new TestDuplicateAlias4());
+	}
+
+	[Test, ExpectedException("LitJson.JsonException")]
+	public void test_alias_duplicate_5() {
+		JsonMapper.ToJson(new TestDuplicateAlias5());
 	}
 }
 

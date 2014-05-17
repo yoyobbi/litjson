@@ -4,7 +4,7 @@ namespace LitJson.Test
 {
 	class ObjectImportRoot
 	{
-		public ObjectImport test;
+		public ObjectImport test = null;
 	}
 
 	class ObjectImport
@@ -14,7 +14,7 @@ namespace LitJson.Test
 
 	class NestedObjectImport
 	{
-		public ObjectImport test;
+		public ObjectImport test = null;
 	}
 
 	[TestFixture]

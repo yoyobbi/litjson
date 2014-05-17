@@ -42,7 +42,8 @@
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(LitJsonRoot)\src\**\*.cs" />
+    <!-- Excluding Unity stuff for now, should probably be in its own DLL. -->
+    <Compile Include="$(LitJsonRoot)\Source\**\*.cs" Exclude="$(LitJsonRoot)\Source\**\Unity*.cs;$(LitJsonRoot)\Source\**\Extensions.cs"/>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
