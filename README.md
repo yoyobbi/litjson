@@ -2,43 +2,41 @@ LitJSON
 =======
 
 A *.Net* library to handle conversions from and to JSON (JavaScript Object
-Notation) strings.
+Notation) strings. This fork has been edited specificity for use with [Unity3D](http://unity3d.com/).
 
-Home page: http://lbv.github.io/litjson/
+Originally created by [lbv](http://lbv.github.io/litjson/).
 
+## Installation
+
+Simply pull the repo and open the .unitypackage to import the library.
+
+## Licence
+
+This is free and unencumbered software released into the public domain.
+
+For more information, please refer to http://unlicense.org/.
+
+## Examples
+
+For general examples, check out [/Docs/Quickstart/guide.md](https://github.com/VictorySquare/UnityLitJson/blob/master/Docs/quickstart/guide.md) 
+in this repo, there is also a simple example included in the Unity package.
 
 ## Compiling
 
-See the files under the `build` directory.
-
-### Using GNU Make
-
-Change directory to `build/make/` and run `make` from it. This tries to use
-the `gmcs` compiler by default. Feel free to open the `Makefile` and tweak
-it according to your needs.
-
-### Using other tools
-
-Currently, LitJSON doesn't have any other auxiliary files for compiling this
-library with other tools.
-
-If you want to contribute your own solutions to compile it with tools like
-*NAnt* or *MSBuild*, that would be most appreciated. Please create those
-auxiliary files under the path `build/some-tool`. Thanks.
+I've left the LitJson csproj intact so you can compile a dll and run the 
+tests. When your ready to use the library in your project I recommend you import 
+the uncompiled source as there are some #if directives in UnityPlatform.cs 
+that help make the library work on WinRT (and possibly other platforms in the future).
 
 ## Tests
 
-This library comes with a set of unit tests using the
-[NUnit](http://www.nunit.org/) framework.
+This library comes with a set of unit tests using the [NUnit](http://www.nunit.org/) framework.
 
-If you have
-[pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config) in your
-system, and the *Mono* suite provides the `mono-nunit.pc` file, you can try
-running these tests by running `make test` from the `build/make` directory.
+## TODO
 
-
-## Using LitJSON from an application
-
-Once this library is compiled, .Net developers may use it by simply copying
-the `.dll` file into their project's directory. Or you may copy the whole
-tree of files under `src/LitJSON` to your own project's working directory.
+1. Remove the static writer and just create a new private one each time instead (eliminates need for global lock).
+2. Add more error checks for type hinting.
+3. Add full XMLDocs to public interfaces.
+4. Try to get custom importers/exporters working recursively.
+6. README.md needs more information and examples.
+7. Fix unit tests that cause mono to crash (something with Enums I think).

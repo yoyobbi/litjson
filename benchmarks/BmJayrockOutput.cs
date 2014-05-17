@@ -25,8 +25,8 @@ namespace LitJson.Benchmarks
                 out_stream.WriteLine (
                     "*** Reading with Jayrock.Json.JsonReader");
 
-                while (reader.Read ()) {
-                    out_stream.Write ("Token: {0}", reader.TokenClass);
+                while (reader.Read()) {
+                    out_stream.Write("Token: {0}", reader.TokenClass);
 
                     if (reader.Text != null)
                         out_stream.WriteLine (" Value: {0}", reader.Text);
@@ -95,17 +95,17 @@ namespace LitJson.Benchmarks
                     "\n\n*** Data imported with " +
                     "Jayrock.Json.Conversion.JsonConvert\n");
 
-                Person art = (Person) JsonConvert.Import (typeof (Person),
+                Person art = (Person) JsonConvert.Import (typeof(Person),
                                                           Common.PersonJson);
 
-                out_stream.Write (art.ToString ());
+                out_stream.Write(art.ToString ());
 
 
                 out_stream.WriteLine (
                     "\n\n*** Object exported with " +
                     "Jayrock.Json.Conversion.JsonConvert\n");
 
-                out_stream.Write (JsonConvert.ExportToString (
+                out_stream.Write(JsonConvert.ExportToString (
                         Common.SamplePerson));
 
                 out_stream.WriteLine (
@@ -114,14 +114,14 @@ namespace LitJson.Benchmarks
                 JsonObject person = (JsonObject) JsonConvert.Import (
                     Common.PersonJson);
 
-                out_stream.Write (JsonConvert.ExportToString (person));
+                out_stream.Write(JsonConvert.ExportToString (person));
 
 
                 out_stream.WriteLine (
                     "\n\n*** Hashtable exported with " +
                     "Jayrock.Json.Conversion.JsonConvert\n");
 
-                out_stream.Write (JsonConvert.ExportToString (
+                out_stream.Write(JsonConvert.ExportToString (
                         Common.HashtablePerson));
 
                 out_stream.Close ();

@@ -27,12 +27,12 @@ namespace LitJson.Test
             string json = "[ true, false ]";
 
             JsonReader reader = new JsonReader (json);
-            reader.Read ();
+            reader.Read();
 
-            reader.Read ();
-            Assert.IsTrue ((bool) reader.Value, "A1");
-            reader.Read ();
-            Assert.IsTrue (! ((bool) reader.Value), "A2");
+            reader.Read();
+            Assert.IsTrue((bool) reader.Value, "A1");
+            reader.Read();
+            Assert.IsTrue(! ((bool) reader.Value), "A2");
 
             reader.Close ();
         }
@@ -53,17 +53,17 @@ namespace LitJson.Test
 
             JsonReader reader = new JsonReader (json);
 
-            reader.Read ();
-            reader.Read ();
-            Assert.AreEqual ("foo", (string) reader.Value, "A1");
+            reader.Read();
+            reader.Read();
+            Assert.AreEqual("foo", (string) reader.Value, "A1");
 
-            reader.Read ();
-            reader.Read ();
-            Assert.AreEqual ("baz", (string) reader.Value, "A2");
+            reader.Read();
+            reader.Read();
+            Assert.AreEqual("baz", (string) reader.Value, "A2");
 
-            reader.Read ();
-            reader.Read ();
-            Assert.IsTrue (reader.EndOfJson, "A3");
+            reader.Read();
+            reader.Read();
+            Assert.IsTrue(reader.EndOfJson, "A3");
         }
 
         [Test]
@@ -73,31 +73,31 @@ namespace LitJson.Test
                    144e+3, 0.1e2 ]";
 
             JsonReader reader = new JsonReader (json);
-            reader.Read ();
+            reader.Read();
 
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, 0.0,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, 0.0,
                              Double.Epsilon, "A1");
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, 0.0,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, 0.0,
                              Double.Epsilon, "A2");
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, 3.1416,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, 3.1416,
                              Double.Epsilon, "A3");
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, 0.008,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, 0.008,
                              Double.Epsilon, "A4");
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, 0.00007,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, 0.00007,
                              Double.Epsilon, "A5");
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, -128.000009,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, -128.000009,
                              Double.Epsilon, "A6");
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, 144000.0,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, 144000.0,
                              Double.Epsilon, "A7");
-            reader.Read ();
-            Assert.AreEqual ((double) reader.Value, 10.0,
+            reader.Read();
+            Assert.AreEqual((double) reader.Value, 10.0,
                              Double.Epsilon, "A8");
 
             reader.Close ();
@@ -109,10 +109,10 @@ namespace LitJson.Test
             string json = "[ \"\" ]";
 
             JsonReader reader = new JsonReader (json);
-            reader.Read ();
+            reader.Read();
 
-            reader.Read ();
-            Assert.AreEqual (reader.Value, String.Empty);
+            reader.Read();
+            Assert.AreEqual(reader.Value, String.Empty);
 
             reader.Close ();
         }
@@ -126,46 +126,52 @@ namespace LitJson.Test
 
             int i;
             for (i = 0; i < 3; i++) {
-                Assert.IsFalse (reader.EndOfJson, "A1");
-                reader.Read ();
+                Assert.IsFalse(reader.EndOfJson, "A1");
+                reader.Read();
             }
 
-            Assert.IsTrue (reader.EndOfJson, "A2");
-            Assert.IsFalse (reader.EndOfInput, "A3");
+            Assert.IsTrue(reader.EndOfJson, "A2");
+            Assert.IsFalse(reader.EndOfInput, "A3");
 
-            reader.Read ();
+            reader.Read();
 
             for (i = 0; i < 3; i++) {
-                Assert.IsFalse (reader.EndOfJson, "A4");
-                reader.Read ();
+                Assert.IsFalse(reader.EndOfJson, "A4");
+                reader.Read();
             }
 
-            Assert.IsTrue (reader.EndOfJson, "A5");
-            Assert.IsFalse (reader.EndOfInput, "A6");
+            Assert.IsTrue(reader.EndOfJson, "A5");
+            Assert.IsFalse(reader.EndOfInput, "A6");
 
-            reader.Read ();
+            reader.Read();
 
             for (i = 0; i < 4; i++) {
-                Assert.IsFalse (reader.EndOfJson, "A7");
-                reader.Read ();
+                Assert.IsFalse(reader.EndOfJson, "A7");
+                reader.Read();
             }
 
-            Assert.IsTrue (reader.EndOfJson, "A8");
+            Assert.IsTrue(reader.EndOfJson, "A8");
 
-            reader.Read ();
-            Assert.IsTrue (reader.EndOfInput, "A9");
+            reader.Read();
+            Assert.IsTrue(reader.EndOfInput, "A9");
         }
 
         [Test]
         public void FromFileTest ()
         {
-            Assembly asmb = typeof (JsonReaderTest).Assembly;
-            StreamReader stream = new StreamReader (
-                asmb.GetManifestResourceStream ("json-example.txt"));
+            Assembly asmb = typeof(JsonReaderTest).Assembly;
+
+            var fileStream = asmb.GetManifestResourceStream ("json-example.txt");
+            if (fileStream == null)
+            {
+                fileStream = asmb.GetManifestResourceStream ("litjsontest.json-example.txt");
+            }
+
+            StreamReader stream = new StreamReader (fileStream);
 
             JsonReader reader = new JsonReader (stream);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
@@ -174,35 +180,35 @@ namespace LitJson.Test
             string json = "[ 0, -0, 123, 14400, -500 ]";
 
             JsonReader reader = new JsonReader (json);
-            reader.Read ();
+            reader.Read();
 
-            reader.Read ();
-            Assert.AreEqual ((int) reader.Value, 0, "A1");
-            reader.Read ();
-            Assert.AreEqual ((int) reader.Value, 0, "A2");
-            reader.Read ();
-            Assert.AreEqual ((int) reader.Value, 123, "A3");
-            reader.Read ();
-            Assert.AreEqual ((int) reader.Value, 14400, "A4");
-            reader.Read ();
-            Assert.AreEqual ((int) reader.Value, -500, "A5");
+            reader.Read();
+            Assert.AreEqual((long) reader.Value, 0, "A1");
+            reader.Read();
+            Assert.AreEqual((long) reader.Value, 0, "A2");
+            reader.Read();
+            Assert.AreEqual((long) reader.Value, 123, "A3");
+            reader.Read();
+            Assert.AreEqual((long) reader.Value, 14400, "A4");
+            reader.Read();
+            Assert.AreEqual((long) reader.Value, -500, "A5");
 
             reader.Close ();
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void LexerErrorEscapeSequenceTest ()
         {
             string json = "[ \"Hello World \\ufffg \" ]";
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void LexerErrorRealNumberTest ()
         {
             // One ore more digits have to appear after the '.'
@@ -210,18 +216,18 @@ namespace LitJson.Test
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void LexerErrorTrueTest ()
         {
             string json = "[ TRUE ]";
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
@@ -231,13 +237,13 @@ namespace LitJson.Test
             string json = "[ 2147483648, -10000000000 ]";
 
             JsonReader reader = new JsonReader (json);
-            reader.Read ();
+            reader.Read();
 
-            reader.Read ();
-            Assert.AreEqual (typeof (Int64), reader.Value.GetType (), "A1");
-            Assert.AreEqual (2147483648L, (long) reader.Value, "A2");
-            reader.Read ();
-            Assert.AreEqual (-10000000000L, (long) reader.Value, "A3");
+            reader.Read();
+            Assert.AreEqual(typeof(Int64), reader.Value.GetType (), "A1");
+            Assert.AreEqual(2147483648L, (long) reader.Value, "A2");
+            reader.Read();
+            Assert.AreEqual(-10000000000L, (long) reader.Value, "A3");
 
             reader.Close ();
         }
@@ -251,12 +257,12 @@ namespace LitJson.Test
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ()) {
+            while (reader.Read()) {
                 if (reader.Token == JsonToken.ArrayStart)
                     array_count++;
             }
 
-            Assert.AreEqual (array_count, 5);
+            Assert.AreEqual(array_count, 5);
         }
 
         [Test]
@@ -267,22 +273,22 @@ namespace LitJson.Test
             int object_count = 0;
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ()) {
+            while (reader.Read()) {
                 if (reader.Token == JsonToken.ObjectStart)
                     object_count++;
             }
 
-            Assert.AreEqual (object_count, 3);
+            Assert.AreEqual(object_count, 3);
         }
 
         [Test]
-        [ExpectedException (typeof (ArgumentNullException))]
+        [ExpectedException (typeof(ArgumentNullException))]
         public void NullReaderTest ()
         {
             TextReader text_reader = null;
             JsonReader reader = new JsonReader (text_reader);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
@@ -291,49 +297,49 @@ namespace LitJson.Test
             string json = "[ null ]";
 
             JsonReader reader = new JsonReader (json);
-            reader.Read ();
+            reader.Read();
 
-            reader.Read ();
+            reader.Read();
             Assert.IsNull (reader.Value);
 
             reader.Close ();
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void ParserErrorArrayClosingTest ()
         {
             string json = "[ 1, 2, 3 }";
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void ParserErrorIncompleteObjectTest ()
         {
             string json = "{ \"temperature\" : 21 ";
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void ParserErrorNoArrayOrObjectTest ()
         {
             string json = "true";
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void ParserErrorObjectClosingTest ()
         {
             string json = @"{
@@ -342,18 +348,18 @@ namespace LitJson.Test
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void ParserErrorPropertyExpectedTest ()
         {
             string json = "{ {\"foo\": bar} }";
 
             JsonReader reader = new JsonReader (json);
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
@@ -363,24 +369,24 @@ namespace LitJson.Test
 
             JsonReader reader = new JsonReader (json);
 
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.ArrayStart, "A1");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.String, "A2");
-            Assert.AreEqual (reader.Value, "George", "A3");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.String, "A3");
-            Assert.AreEqual (reader.Value, "John", "A4");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.String, "A6");
-            Assert.AreEqual (reader.Value, "Ringo", "A7");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.String, "A8");
-            Assert.AreEqual (reader.Value, "Paul", "A9");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.ArrayEnd, "A10");
-            reader.Read ();
-            Assert.IsTrue (reader.EndOfJson, "A11");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.ArrayStart, "A1");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.String, "A2");
+            Assert.AreEqual(reader.Value, "George", "A3");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.String, "A3");
+            Assert.AreEqual(reader.Value, "John", "A4");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.String, "A6");
+            Assert.AreEqual(reader.Value, "Ringo", "A7");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.String, "A8");
+            Assert.AreEqual(reader.Value, "Paul", "A9");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.ArrayEnd, "A10");
+            reader.Read();
+            Assert.IsTrue(reader.EndOfJson, "A11");
         }
 
         [Test]
@@ -393,28 +399,28 @@ namespace LitJson.Test
 
             JsonReader reader = new JsonReader (json);
 
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.ObjectStart, "A1");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.PropertyName, "A2");
-            Assert.AreEqual (reader.Value, "vehicle", "A3");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.String, "A4");
-            Assert.AreEqual (reader.Value, "submarine", "A5");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.PropertyName, "A6");
-            Assert.AreEqual (reader.Value, "color", "A7");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.String, "A8");
-            Assert.AreEqual (reader.Value, "yellow", "A9");
-            reader.Read ();
-            Assert.AreEqual (reader.Token, JsonToken.ObjectEnd, "A10");
-            reader.Read ();
-            Assert.IsTrue (reader.EndOfJson, "A11");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.ObjectStart, "A1");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.PropertyName, "A2");
+            Assert.AreEqual(reader.Value, "vehicle", "A3");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.String, "A4");
+            Assert.AreEqual(reader.Value, "submarine", "A5");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.PropertyName, "A6");
+            Assert.AreEqual(reader.Value, "color", "A7");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.String, "A8");
+            Assert.AreEqual(reader.Value, "yellow", "A9");
+            reader.Read();
+            Assert.AreEqual(reader.Token, JsonToken.ObjectEnd, "A10");
+            reader.Read();
+            Assert.IsTrue(reader.EndOfJson, "A11");
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void StrictCommentsTest ()
         {
             string json = @"
@@ -428,11 +434,11 @@ namespace LitJson.Test
             JsonReader reader = new JsonReader (json);
             reader.AllowComments = false;
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
-        [ExpectedException (typeof (JsonException))]
+        [ExpectedException (typeof(JsonException))]
         public void StrictStringsTest ()
         {
             string json = "[ 'Look! Single quotes' ]";
@@ -440,7 +446,7 @@ namespace LitJson.Test
             JsonReader reader = new JsonReader (json);
             reader.AllowSingleQuotedStrings = false;
 
-            while (reader.Read ());
+            while (reader.Read());
         }
 
         [Test]
@@ -452,10 +458,10 @@ namespace LitJson.Test
             string str = "abc 123 \n\f\b\t\r \" \\ \u263a \u25cf";
 
             JsonReader reader = new JsonReader (json);
-            reader.Read ();
-            reader.Read ();
+            reader.Read();
+            reader.Read();
 
-            Assert.AreEqual (str, reader.Value, "A1");
+            Assert.AreEqual(str, reader.Value, "A1");
 
             reader.Close ();
 
@@ -463,10 +469,10 @@ namespace LitJson.Test
             str  = "\"Hello\" 'world'";
 
             reader = new JsonReader (json);
-            reader.Read ();
-            reader.Read ();
+            reader.Read();
+            reader.Read();
 
-            Assert.AreEqual (str, reader.Value, "A2");
+            Assert.AreEqual(str, reader.Value, "A2");
 
             reader.Close ();
         }

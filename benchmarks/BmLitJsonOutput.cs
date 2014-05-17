@@ -18,8 +18,8 @@ namespace LitJson.Benchmarks
 
                 out_stream.WriteLine ("*** Reading with LitJson.JsonReader");
 
-                while (reader.Read ()) {
-                    out_stream.Write ("Token: {0}", reader.Token);
+                while (reader.Read()) {
+                    out_stream.Write("Token: {0}", reader.Token);
 
                     if (reader.Value != null)
                         out_stream.WriteLine (" Value: {0}", reader.Value);
@@ -31,53 +31,53 @@ namespace LitJson.Benchmarks
                 out_stream.WriteLine (
                     "\n*** Writing with LitJson.JsonWriter");
 
-                JsonWriter writer = new JsonWriter (out_stream);
+                JsonWriter writer = new JsonWriter(out_stream);
                 int n = Common.SampleObject.Length;
                 for (int i = 0; i < n; i += 2) {
                     switch ((char) Common.SampleObject[i]) {
                     case '{':
-                        writer.WriteObjectStart ();
+                        writer.WriteObjectStart();
                         break;
 
                     case '}':
-                        writer.WriteObjectEnd ();
+                        writer.WriteObjectEnd();
                         break;
 
                     case '[':
-                        writer.WriteArrayStart ();
+                        writer.WriteArrayStart();
                         break;
 
                     case ']':
-                        writer.WriteArrayEnd ();
+                        writer.WriteArrayEnd();
                         break;
 
                     case 'P':
-                        writer.WritePropertyName (
+                        writer.WritePropertyName(
                             (string) Common.SampleObject[i + 1]);
                         break;
 
                     case 'I':
-                        writer.Write (
+                        writer.Write(
                             (int) Common.SampleObject[i + 1]);
                         break;
 
                     case 'D':
-                        writer.Write (
+                        writer.Write(
                             (double) Common.SampleObject[i + 1]);
                         break;
 
                     case 'S':
-                        writer.Write (
+                        writer.Write(
                             (string) Common.SampleObject[i + 1]);
                         break;
 
                     case 'B':
-                        writer.Write (
+                        writer.Write(
                             (bool) Common.SampleObject[i + 1]);
                         break;
 
                     case 'N':
-                        writer.Write (null);
+                        writer.Write(null);
                         break;
                     }
                 }
@@ -89,14 +89,14 @@ namespace LitJson.Benchmarks
 
                 Person art = JsonMapper.ToObject<Person> (Common.PersonJson);
 
-                out_stream.Write (art.ToString ());
+                out_stream.Write(art.ToString ());
 
 
                 out_stream.WriteLine (
                     "\n\n*** Object exported with " +
                     "LitJson.JsonMapper\n");
 
-                out_stream.Write (JsonMapper.ToJson (Common.SamplePerson));
+                out_stream.Write(JsonMapper.ToJson(Common.SamplePerson));
 
 
                 out_stream.WriteLine (
@@ -105,14 +105,14 @@ namespace LitJson.Benchmarks
 
                 JsonData person = JsonMapper.ToObject (Common.PersonJson);
 
-                out_stream.Write (JsonMapper.ToJson (person));
+                out_stream.Write(JsonMapper.ToJson(person));
 
 
                 out_stream.WriteLine (
                     "\n\n*** Hashtable exported with " +
                     "LitJson.JsonMapper\n");
 
-                out_stream.Write (JsonMapper.ToJson (Common.HashtablePerson));
+                out_stream.Write(JsonMapper.ToJson(Common.HashtablePerson));
 
                 out_stream.Close ();
             }

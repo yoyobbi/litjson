@@ -19,9 +19,9 @@ namespace LitJson.Benchmarks
         public static void LitJsonConversionFromGenericObject ()
         {
             for (int i = 0; i < Common.Iterations; i++) {
-                string json = JsonMapper.ToJson (person);
+                string json = JsonMapper.ToJson(person);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
 
@@ -29,9 +29,9 @@ namespace LitJson.Benchmarks
         public static void LitJsonConversionFromHashtable ()
         {
             for (int i = 0; i < Common.Iterations; i++) {
-                string json = JsonMapper.ToJson (Common.HashtablePerson);
+                string json = JsonMapper.ToJson(Common.HashtablePerson);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
 
@@ -39,9 +39,9 @@ namespace LitJson.Benchmarks
         public static void LitJsonConversionFromObject ()
         {
             for (int i = 0; i < Common.Iterations; i++) {
-                string json = JsonMapper.ToJson (Common.SamplePerson);
+                string json = JsonMapper.ToJson(Common.SamplePerson);
 
-                TextWriter.Null.Write (json);
+                TextWriter.Null.Write(json);
             }
         }
     }

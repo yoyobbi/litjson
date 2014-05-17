@@ -4,3 +4,8 @@
 /build/vs2012/bin
 /build/vs2012/obj
 /build/vs2012/*.suo
+TestResult.xml
+*.sublime-project
+*.sublime-workspace
+*.mdb
+.DS_Store
