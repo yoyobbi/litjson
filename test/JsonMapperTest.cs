@@ -926,6 +926,9 @@ namespace LitJson.Test
             RoundTrip<Decimal>(CompareDecimal, 0.0M, 1.0M, 0.1M, 0.123456789M, 123456789.123456789M, Decimal.MinValue, Decimal.MaxValue);
         }
 
+        // NOTE: the comparison functions wouldn't be needed if json round-tripped correctly for float and decimal numbers.
+        // It does for double, because the reader always uses double. To make it work for the others we should defer string
+        // parsing until the target numeric type is known -- is this possible within the existing framework?
         private int CompareSingle(float x, float y)
         {
             if (x == y)
@@ -943,21 +946,11 @@ namespace LitJson.Test
             }
         }
 
+        // Note that default comparison works fine for double -- doubles round-trip correctly through LitJson, because it uses
+        // double as the primary input type for floating point numbers.
         private int CompareDouble(double x, double y)
         {
-            if (x == y)
-                return 0;
-
-            // Jump through unsafe hoops to compare via binary representation of floating point numbers.
-            unsafe
-            {
-                long xi = *(int*)&x;
-                long yi = *(int*)&y;
-                long diff = xi - yi;
-
-                // +/-1 are adjacent doubles, call them equal. (http://www.altdevblogaday.com/2012/02/22/comparing-floating-point-numbers-2012-edition/)
-                return (diff < -1 ? -1 : (diff > 1 ? +1 : 0));
-            }
+            return Comparer<double>.Default.Compare (x, y);
         }
 
         private int CompareDecimal (decimal x, decimal y)
@@ -973,14 +966,13 @@ namespace LitJson.Test
                 return 0;
 
             // In the meantime, convert to double and settle for some loss of precision ...
-
             // Jump through unsafe hoops to compare via binary representation of floating point numbers.
             double xd = (double)x;
             double yd = (double)y;
             unsafe
             {
-                long xi = *(int*)&xd;
-                long yi = *(int*)&yd;
+                long xi = *(long*)&xd;
+                long yi = *(long*)&yd;
                 long diff = xi - yi;
 
                 // Note that we can't be as precise as above with doubles.
