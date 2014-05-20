@@ -634,6 +634,12 @@ namespace LitJson
                               typeof (uint), importer);
 
             importer = delegate (object input) {
+                return Convert.ToInt64 ((int)input);
+            };
+            RegisterImporter(base_importers_table, typeof(int),
+                              typeof(long), importer);
+
+            importer = delegate (object input) {
                 return Convert.ToSingle ((int) input);
             };
             RegisterImporter (base_importers_table, typeof (int),
@@ -646,10 +652,16 @@ namespace LitJson
                               typeof (double), importer);
 
             importer = delegate (object input) {
-                return Convert.ToDecimal ((double) input);
+                return Convert.ToDecimal ((double)input);
             };
-            RegisterImporter (base_importers_table, typeof (double),
-                              typeof (decimal), importer);
+            RegisterImporter (base_importers_table, typeof(double),
+                              typeof(decimal), importer);
+
+            importer = delegate (object input) {
+                return Convert.ToSingle ((double)input);
+            };
+            RegisterImporter (base_importers_table, typeof(double),
+                              typeof(float), importer);
 
 
             importer = delegate (object input) {
@@ -657,6 +669,12 @@ namespace LitJson
             };
             RegisterImporter (base_importers_table, typeof (long),
                               typeof (uint), importer);
+
+            importer = delegate (object input) {
+                return Convert.ToUInt64 ((long)input);
+            };
+            RegisterImporter(base_importers_table, typeof(long),
+                              typeof(ulong), importer);
 
             importer = delegate (object input) {
                 return Convert.ToChar ((string) input);
@@ -710,12 +728,19 @@ namespace LitJson
                 return;
             }
 
-            if (obj is Double) {
-                writer.Write ((double) obj);
+            if (obj is Single) {
+                writer.Write ((float)obj);
                 return;
             }
 
-            if (obj is Int32) {
+            if (obj is Double)
+            {
+                writer.Write ((double)obj);
+                return;
+            }
+
+            if (obj is Int32)
+            {
                 writer.Write ((int) obj);
                 return;
             }

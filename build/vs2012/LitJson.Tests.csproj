@@ -29,6 +29,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -44,7 +45,7 @@
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>$(NUnitBin)\nunit.exe</StartProgram>
-    <StartArguments>/run "$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll"</StartArguments>
+    <StartArguments>/runselected "$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll"</StartArguments>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(LitJsonRoot)\test\**\*.cs" />
